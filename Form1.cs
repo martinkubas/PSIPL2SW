@@ -20,12 +20,18 @@ namespace Projekt
 
         private void InitializeComponents()
         {
-            LoadDevices();
+            try
+            {
+                LoadDevices();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in InitializeComponents: {ex.Message}");
+            }
         }
 
         private void LoadDevices()
         {
-            // Get all available network devices
             var devices = LibPcapLiveDeviceList.Instance;
 
             if (devices.Count == 0)
@@ -34,19 +40,20 @@ namespace Projekt
                 return;
             }
 
-            // Populate the ComboBoxes with available devices
-            comboBoxInterface1.DataSource = devices.ToList();
-            comboBoxInterface1.DisplayMember = "Interface.FriendlyName";
+            comboBoxInterface1.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + d.Interface.Description }).ToList();
+            comboBoxInterface1.DisplayMember = "Name";
+            comboBoxInterface1.ValueMember = "Device"; 
 
-            comboBoxInterface2.DataSource = devices.ToList(); // Create a new list to avoid binding issues
-            comboBoxInterface2.DisplayMember = "Interface.FriendlyName";
+            comboBoxInterface2.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + d.Interface.Description }).ToList();
+            comboBoxInterface2.DisplayMember = "Name";
+            comboBoxInterface2.ValueMember = "Device"; 
         }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
             // Get the selected interfaces
-            interface1 = comboBoxInterface1.SelectedItem as LibPcapLiveDevice;
-            interface2 = comboBoxInterface2.SelectedItem as LibPcapLiveDevice;
+            interface1 = comboBoxInterface1.SelectedValue as LibPcapLiveDevice;
+            interface2 = comboBoxInterface2.SelectedValue as LibPcapLiveDevice;
 
             if (interface1 == null || interface2 == null)
             {
@@ -62,17 +69,13 @@ namespace Projekt
 
             try
             {
-                // Initialize the packet forwarder with the selected interfaces
                 packetForwarder = new PacketForwarder(interface1, interface2);
 
-                // Start the packet forwarder
                 packetForwarder.Start();
 
-                // Update UI
                 btnStart.Enabled = false;
                 btnStop.Enabled = true;
 
-                // Start the timer to update the UI with packet statistics
                 timerStatistics.Start();
             }
             catch (Exception ex)
@@ -93,7 +96,6 @@ namespace Projekt
                 btnStart.Enabled = true;
                 btnStop.Enabled = false;
 
-                // Stop the timer
                 timerStatistics.Stop();
             }
             catch (Exception ex)
@@ -101,23 +103,76 @@ namespace Projekt
                 MessageBox.Show($"Error stopping packet forwarder: {ex.Message}");
             }
         }
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder != null)
+            {
+                if ((sender as Button).Name == "btnResetInt1")
+                {
+                    InterfaceStatistics int1Stats = packetForwarder.GetStatsInterface1();
+                    int1Stats.Reset();
+                }
+                else
+                {
+                    InterfaceStatistics int2Stats = packetForwarder.GetStatsInterface2();
+                    int2Stats.Reset();
+                }
+
+            }
+        }
 
         private void timerStatistics_Tick(object sender, EventArgs e)
         {
             if (packetForwarder != null)
             {
-                // Update statistics for Interface 1
+                
                 var statsInterface1 = packetForwarder.GetStatsInterface1();
-                lblInterface1Incoming.Text = $"Interface 1 Incoming: {statsInterface1.IncomingPackets}";
-                lblInterface1Outgoing.Text = $"Interface 1 Outgoing: {statsInterface1.OutgoingPackets}";
+                
+                UpdateLabelText(this.interface1InOut, 0, 1, $"ARP: {statsInterface1.ArpIn}");
+                UpdateLabelText(this.interface1InOut, 0, 2, $"Ethernet2: {statsInterface1.Ethernet2In}");
+                UpdateLabelText(this.interface1InOut, 0, 3, $"IP: {statsInterface1.IPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 4, $"ICMP: {statsInterface1.ICMPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 5, $"TCP: {statsInterface1.TCPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 6, $"UDP: {statsInterface1.UDPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 7, $"Total: {statsInterface1.totalIn}");
+                
+                UpdateLabelText(this.interface1InOut, 1, 1, $"ARP: {statsInterface1.ArpOut}");
+                UpdateLabelText(this.interface1InOut, 1, 2, $"Ethernet2: {statsInterface1.Ethernet2Out}");
+                UpdateLabelText(this.interface1InOut, 1, 3, $"IP: {statsInterface1.IPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 4, $"ICMP: {statsInterface1.ICMPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 5, $"TCP: {statsInterface1.TCPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 6, $"UDP: {statsInterface1.UDPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 7, $"Total: {statsInterface1.totalOut}");
 
-                // Update statistics for Interface 2
+
                 var statsInterface2 = packetForwarder.GetStatsInterface2();
-                lblInterface2Incoming.Text = $"Interface 2 Incoming: {statsInterface2.IncomingPackets}";
-                lblInterface2Outgoing.Text = $"Interface 2 Outgoing: {statsInterface2.OutgoingPackets}";
+
+                UpdateLabelText(this.interface2InOut, 0, 1, $"ARP: {statsInterface2.ArpIn}");
+                UpdateLabelText(this.interface2InOut, 0, 2, $"Ethernet2: {statsInterface2.Ethernet2In}");
+                UpdateLabelText(this.interface2InOut, 0, 3, $"IP: {statsInterface2.IPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 4, $"ICMP: {statsInterface2.ICMPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 5, $"TCP: {statsInterface2.TCPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 6, $"UDP: {statsInterface2.UDPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 7, $"Total: {statsInterface2.totalIn}");
+
+                UpdateLabelText(this.interface2InOut, 1, 1, $"ARP: {statsInterface2.ArpOut}");
+                UpdateLabelText(this.interface2InOut, 1, 2, $"Ethernet2: {statsInterface2.Ethernet2Out}");
+                UpdateLabelText(this.interface2InOut, 1, 3, $"IP: {statsInterface2.IPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 4, $"ICMP: {statsInterface2.ICMPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 5, $"TCP: {statsInterface2.TCPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 6, $"UDP: {statsInterface2.UDPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 7, $"Total: {statsInterface2.totalOut}");
             }
         }
+        private void UpdateLabelText(TableLayoutPanel table, int column, int row, string text)
+        {
+            var control = table.GetControlFromPosition(column, row);
 
+            if (control is Label label)
+            {
+                label.Text = text;
+            }
+        }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (packetForwarder != null)
