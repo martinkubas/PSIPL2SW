@@ -15,10 +15,10 @@ namespace Projekt
         public Form1()
         {
             InitializeComponent();
-            InitializeComponents();
+            InitializeDevices();
         }
 
-        private void InitializeComponents()
+        private void InitializeDevices()
         {
             try
             {
@@ -40,26 +40,19 @@ namespace Projekt
                 return;
             }
 
-            comboBoxInterface1.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + d.Interface.Description }).ToList();
+            comboBoxInterface1.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + " | " + d.Interface.Description }).ToList();
             comboBoxInterface1.DisplayMember = "Name";
             comboBoxInterface1.ValueMember = "Device"; 
 
-            comboBoxInterface2.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + d.Interface.Description }).ToList();
+            comboBoxInterface2.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + " | " + d.Interface.Description }).ToList();
             comboBoxInterface2.DisplayMember = "Name";
             comboBoxInterface2.ValueMember = "Device"; 
         }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            // Get the selected interfaces
             interface1 = comboBoxInterface1.SelectedValue as LibPcapLiveDevice;
             interface2 = comboBoxInterface2.SelectedValue as LibPcapLiveDevice;
-
-            if (interface1 == null || interface2 == null)
-            {
-                MessageBox.Show("Please select both interfaces.");
-                return;
-            }
 
             if (interface1 == interface2)
             {

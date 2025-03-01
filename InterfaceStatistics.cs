@@ -36,23 +36,26 @@ namespace Projekt
             Reset();
         }
 
-        public void IncrementEthernet2In() { Ethernet2In++; totalIn++; }
-        public void IncrementEthernet2Out() { Ethernet2Out++; totalOut++; }
+        public void IncrementEthernet2In() => Ethernet2In++;
+        public void IncrementEthernet2Out() => Ethernet2Out++;
 
-        public void IncrementArpIn() { ArpIn++; totalIn++; }
-        public void IncrementArpOut() { ArpOut++; totalOut++; }
+        public void IncrementArpIn() => ArpIn++;
+        public void IncrementArpOut() => ArpOut++;
 
-        public void IncrementIPIn() { IPIn++; totalIn++; }
-        public void IncrementIPOut() { IPOut++; totalOut++; }
+        public void IncrementIPIn() => IPIn++;
+        public void IncrementIPOut() => IPOut++;
 
-        public void IncrementICMPIn() { ICMPIn++; totalIn++; }
-        public void IncrementICMPOut() { ICMPOut++; totalOut++; }
+        public void IncrementICMPIn() => ICMPIn++;
+        public void IncrementICMPOut() => ICMPOut++;
 
-        public void IncrementTCPIn() { TCPIn++; totalIn++; }
-        public void IncrementTCPOut() { TCPOut++; totalOut++; }
+        public void IncrementTCPIn() => TCPIn++;
+        public void IncrementTCPOut() => TCPOut++;
 
-        public void IncrementUDPIn() { UDPIn++; totalIn++; }
-        public void IncrementUDPOut() { UDPOut++; totalOut++; }
+        public void IncrementUDPIn() => UDPIn++;
+        public void IncrementUDPOut() => UDPOut++;
+
+        public void IncrementTotalIn() => totalIn++;
+        public void IncrementTotalOut() => totalOut++;
 
         public void Reset()
         {
@@ -68,7 +71,8 @@ namespace Projekt
             TCPOut = 0;
             UDPIn = 0;
             UDPOut = 0;
-
+            totalIn = 0;
+            totalOut = 0;
         }
 
         public void AnalyzePacket(Packet packet, bool isIncoming)

@@ -15,7 +15,7 @@ public class PacketForwarder
     private InterfaceStatistics statsInterface1;
     private InterfaceStatistics statsInterface2;
 
-    private Hashtable receivedPackets = new Hashtable(100000);
+    private Hashtable receivedPackets = new Hashtable();
     public PacketForwarder(LibPcapLiveDevice interface1, LibPcapLiveDevice interface2)
     {
         this.interface1 = interface1;
@@ -82,12 +82,14 @@ public class PacketForwarder
     private void HandleIncomingPacket(LibPcapLiveDevice outgoingInterface, Packet packet, InterfaceStatistics inStats, InterfaceStatistics outStats)
     {
         inStats.AnalyzePacket(packet, true);
+        inStats.IncrementTotalIn();
 
         try
         {
             outgoingInterface.SendPacket(packet.Bytes);
 
             outStats.AnalyzePacket(packet, false);
+            outStats.IncrementTotalOut();
         }
         catch (Exception ex)
         {
@@ -96,7 +98,7 @@ public class PacketForwarder
     }
     private string ComputePacketHash(byte[] packetData)
     {
-        var hashBytes = XxHash64.Hash(packetData);
+        var hashBytes = SHA256.Create().ComputeHash(packetData);
         return BitConverter.ToString(hashBytes).Replace("-", "");
     }
 
