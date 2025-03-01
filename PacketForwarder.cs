@@ -74,6 +74,7 @@ public class PacketForwarder
         if (receivedPackets.ContainsKey(packetHash))
         {
             // Packet has already been processed, drop it to prevent cycling
+            receivedPackets[packetHash] = false;
             return;
         }
 
