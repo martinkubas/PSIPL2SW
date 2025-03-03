@@ -6,7 +6,6 @@ using PacketDotNet;
 using System.Windows.Forms;
 using System.Collections;
 using System.Security.Cryptography;
-using System.IO.Hashing;
 
 public class PacketForwarder
 {
@@ -96,8 +95,11 @@ public class PacketForwarder
     }
     private string ComputePacketHash(byte[] packetData)
     {
-        var hashBytes = XxHash64.Hash(packetData);
-        return BitConverter.ToString(hashBytes).Replace("-", "");
+        using (var sha256 = SHA256.Create())
+        {
+            byte[] hashBytes = sha256.ComputeHash(packetData);
+            return BitConverter.ToString(hashBytes).Replace("-", "");
+        }
     }
 
     public InterfaceStatistics GetStatsInterface1() => statsInterface1;
