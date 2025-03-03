@@ -98,7 +98,7 @@ public class PacketForwarder
     }
     private string ComputePacketHash(byte[] packetData)
     {
-        var hashBytes = SHA256.Create().ComputeHash(packetData);
+        var hashBytes = XxHash64.Hash(packetData);
         return BitConverter.ToString(hashBytes).Replace("-", "");
     }
 
