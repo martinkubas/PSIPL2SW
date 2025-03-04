@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using System.Collections;
 using System.Security.Cryptography;
 using System.IO.Hashing;
+using System.Collections.Concurrent;
+using System.Linq;
 
 public class PacketForwarder
 {
@@ -15,7 +17,8 @@ public class PacketForwarder
     private InterfaceStatistics statsInterface1;
     private InterfaceStatistics statsInterface2;
 
-    private Hashtable receivedPackets = new Hashtable();
+    private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
+    private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
     public PacketForwarder(LibPcapLiveDevice interface1, LibPcapLiveDevice interface2)
     {
         this.interface1 = interface1;
@@ -50,7 +53,7 @@ public class PacketForwarder
             interface2.Close();
         }
 
-        receivedPackets.Clear();
+        receivedPackets = new ConcurrentQueue<string>();
     }
 
     private void OnPacketArrival(object sender, PacketCapture e)
@@ -62,13 +65,21 @@ public class PacketForwarder
 
         string packetHash = ComputePacketHash(rawPacket.Data);
 
-        if (receivedPackets.ContainsKey(packetHash))
+        if (receivedPacketsHashSet.ContainsKey(packetHash))
         {
-            receivedPackets[packetHash] = false; 
             return;
         }
+       
+        if(receivedPackets.Count >= 100)
+        {
+            if(receivedPackets.TryDequeue(out string oldestHash))
+            {
+                receivedPacketsHashSet.TryRemove(oldestHash, out _);
+            }
+        }
 
-        receivedPackets[packetHash] = true;
+        receivedPackets.Enqueue(packetHash);
+        receivedPacketsHashSet[packetHash] = 0;
 
         if (device == interface1)
         {
