@@ -81,7 +81,6 @@ namespace Projekt
             this.comboBoxInterface2.Size = new System.Drawing.Size(300, 24);
             this.comboBoxInterface2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxInterface2.FormattingEnabled = true;
-
             // 
             // btnStart
             // 
