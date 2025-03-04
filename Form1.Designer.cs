@@ -125,9 +125,9 @@ namespace Projekt
             this.interface1InOut.ColumnCount = 2;
             this.interface1InOut.RowCount = 8; 
             this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); 
-            this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); 
+            this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
 
-            this.interface1InOut.Size = new System.Drawing.Size(300, 150); 
+            this.interface1InOut.Size = new System.Drawing.Size(350, 150); 
             this.interface1InOut.Location = new System.Drawing.Point(50, 120);
             this.interface1InOut.Paint += (sender, e) =>
             {
@@ -161,9 +161,9 @@ namespace Projekt
             this.interface2InOut.RowCount = 8;
             this.interface2InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             this.interface2InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-
-            this.interface2InOut.Size = new System.Drawing.Size(300, 150);
-            this.interface2InOut.Location = new System.Drawing.Point(930, 120);
+           
+            this.interface2InOut.Size = new System.Drawing.Size(350, 150);
+            this.interface2InOut.Location = new System.Drawing.Point(880, 120);
             this.interface2InOut.Paint += (sender, e) =>
             {
                 ControlPaint.DrawBorder(e.Graphics, this.interface2InOut.ClientRectangle, Color.Black, ButtonBorderStyle.Solid);
