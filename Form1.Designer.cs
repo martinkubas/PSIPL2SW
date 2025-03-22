@@ -22,6 +22,12 @@ namespace Projekt
         private System.Windows.Forms.TableLayoutPanel interface1InOut;
         private System.Windows.Forms.TableLayoutPanel interface2InOut;
 
+        private System.Windows.Forms.DataGridView macAddressTableGrid; 
+        private System.Windows.Forms.NumericUpDown agingTimerDuration; 
+        private System.Windows.Forms.Label lblAgingTimerDuration; 
+        private System.Windows.Forms.Timer agingTimer; 
+
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -50,6 +56,11 @@ namespace Projekt
 
             this.interface1InOut = new TableLayoutPanel();
             this.interface2InOut = new TableLayoutPanel();
+
+            this.macAddressTableGrid = new System.Windows.Forms.DataGridView();
+            this.agingTimerDuration = new System.Windows.Forms.NumericUpDown();
+            this.lblAgingTimerDuration = new System.Windows.Forms.Label();
+            this.agingTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // lblInterface1
@@ -195,6 +206,57 @@ namespace Projekt
             this.timerStatistics.Interval = 1000;
             this.timerStatistics.Tick += new System.EventHandler(this.timerStatistics_Tick);
             // 
+            // macAddressTableGrid
+            // 
+            this.macAddressTableGrid.AllowUserToAddRows = false;
+            this.macAddressTableGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.macAddressTableGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.macAddressTableGrid.Columns.Add("MACAddress", "MAC Address"); // Column 1: MAC Address
+            this.macAddressTableGrid.Columns.Add("Interface", "Interface");   // Column 2: Interface
+            this.macAddressTableGrid.Columns.Add("LastSeen", "Last Seen");    // Column 3: Last Seen
+            this.macAddressTableGrid.Location = new System.Drawing.Point(50, 350);
+            this.macAddressTableGrid.Name = "macAddressTableGrid";
+            this.macAddressTableGrid.ReadOnly = true;
+            this.macAddressTableGrid.RowHeadersVisible = false;
+            this.macAddressTableGrid.RowTemplate.Height = 24;
+            this.macAddressTableGrid.Size = new System.Drawing.Size(1180, 200);
+            // 
+            // agingTimerDuration
+            // 
+            this.agingTimerDuration.Location = new System.Drawing.Point(1100, 560);
+            this.agingTimerDuration.Maximum = new decimal(new int[] {
+            3600,
+            0,
+            0,
+            0});
+            this.agingTimerDuration.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.agingTimerDuration.Name = "agingTimerDuration";
+            this.agingTimerDuration.Size = new System.Drawing.Size(100, 22);
+            this.agingTimerDuration.Value = new decimal(new int[] {
+            60,
+            0,
+            0,
+            0});
+
+            // 
+            // lblAgingTimerDuration
+            // 
+            this.lblAgingTimerDuration.AutoSize = true;
+            this.lblAgingTimerDuration.Location = new System.Drawing.Point(940, 562);
+            this.lblAgingTimerDuration.Name = "lblAgingTimerDuration";
+            this.lblAgingTimerDuration.Size = new System.Drawing.Size(200, 16);
+            this.lblAgingTimerDuration.Text = "Aging Timer Duration (seconds):";
+
+            // 
+            // agingTimer
+            // 
+            this.agingTimer.Interval = 1000;
+            this.agingTimer.Tick += new System.EventHandler(this.AgingTimer_Tick);
+            // 
             // Form1
             // 
             this.ClientSize = new System.Drawing.Size(1280, 720);
@@ -213,6 +275,12 @@ namespace Projekt
 
             this.Controls.Add(this.lblInterface2);
             this.Controls.Add(this.lblInterface1);
+
+            this.Controls.Add(this.macAddressTableGrid);
+            this.Controls.Add(this.agingTimerDuration);
+            this.Controls.Add(this.lblAgingTimerDuration);
+
+
             this.Name = "Form1";
             this.Text = "Ethernet Hub";
             this.ResumeLayout(false);

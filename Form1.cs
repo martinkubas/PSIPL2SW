@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using SharpPcap;
@@ -8,16 +9,19 @@ namespace Projekt
 {
     public partial class Form1 : Form
     {
-        private LibPcapLiveDevice interface1;
-        private LibPcapLiveDevice interface2;
+        private List<LibPcapLiveDevice> activeInterfaces = new List<LibPcapLiveDevice>();
         private PacketForwarder packetForwarder;
-
+        private Dictionary<int, TableLayoutPanel> interfacePanels;
         public Form1()
         {
             InitializeComponent();
             InitializeDevices();
+            interfacePanels = new Dictionary<int, TableLayoutPanel>
+            {
+                { 0, interface1InOut },
+                { 1, interface2InOut }
+            };
         }
-
         private void InitializeDevices()
         {
             try
@@ -51,18 +55,12 @@ namespace Projekt
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            interface1 = comboBoxInterface1.SelectedValue as LibPcapLiveDevice;
-            interface2 = comboBoxInterface2.SelectedValue as LibPcapLiveDevice;
-
-            if (interface1 == interface2)
-            {
-                MessageBox.Show("Interface 1 and Interface 2 must be different.");
-                return;
-            }
+            activeInterfaces.Add(comboBoxInterface1.SelectedValue as LibPcapLiveDevice);
+            activeInterfaces.Add(comboBoxInterface2.SelectedValue as LibPcapLiveDevice);
 
             try
             {
-                packetForwarder = new PacketForwarder(interface1, interface2);
+                packetForwarder = new PacketForwarder(activeInterfaces);
 
                 packetForwarder.Start();
 
@@ -70,6 +68,10 @@ namespace Projekt
                 btnStop.Enabled = true;
 
                 timerStatistics.Start();
+                agingTimer.Start();
+
+                UpdateMacAddressTableUI();
+
             }
             catch (Exception ex)
             {
@@ -84,6 +86,7 @@ namespace Projekt
                 if (packetForwarder != null)
                 {
                     packetForwarder.Stop();
+                    activeInterfaces.Clear();
                 }
 
                 btnStart.Enabled = true;
@@ -100,17 +103,11 @@ namespace Projekt
         {
             if (packetForwarder != null)
             {
-                if ((sender as Button).Name == "btnResetInt1")
+                for(int i = 0; i < activeInterfaces.Count; i++)
                 {
-                    InterfaceStatistics int1Stats = packetForwarder.GetStatsInterface1();
-                    int1Stats.Reset();
+                    var stats = packetForwarder.GetStatsForInterface(i);
+                    stats.Reset();
                 }
-                else
-                {
-                    InterfaceStatistics int2Stats = packetForwarder.GetStatsInterface2();
-                    int2Stats.Reset();
-                }
-
             }
         }
 
@@ -118,43 +115,57 @@ namespace Projekt
         {
             if (packetForwarder != null)
             {
-                
-                var statsInterface1 = packetForwarder.GetStatsInterface1();
-                
-                UpdateLabelText(this.interface1InOut, 0, 1, $"ARP: {statsInterface1.ArpIn}");
-                UpdateLabelText(this.interface1InOut, 0, 2, $"Ethernet2: {statsInterface1.Ethernet2In}");
-                UpdateLabelText(this.interface1InOut, 0, 3, $"IP: {statsInterface1.IPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 4, $"ICMP: {statsInterface1.ICMPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 5, $"TCP: {statsInterface1.TCPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 6, $"UDP: {statsInterface1.UDPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 7, $"Total: {statsInterface1.totalIn}");
-                
-                UpdateLabelText(this.interface1InOut, 1, 1, $"ARP: {statsInterface1.ArpOut}");
-                UpdateLabelText(this.interface1InOut, 1, 2, $"Ethernet2: {statsInterface1.Ethernet2Out}");
-                UpdateLabelText(this.interface1InOut, 1, 3, $"IP: {statsInterface1.IPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 4, $"ICMP: {statsInterface1.ICMPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 5, $"TCP: {statsInterface1.TCPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 6, $"UDP: {statsInterface1.UDPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 7, $"Total: {statsInterface1.totalOut}");
+                for (int i = 0; i < activeInterfaces.Count; i++)
+                {
+                    var stats = packetForwarder.GetStatsForInterface(i);
+                    if (interfacePanels.TryGetValue(i, out TableLayoutPanel table))
+                    {
+                        UpdateInterfaceStatsUI(table, stats);
+                    }
 
+                }
+                UpdateMacAddressTableUI();
+            }
+        }
+        private void UpdateInterfaceStatsUI(TableLayoutPanel table, InterfaceStatistics stats)
+        {
+            UpdateLabelText(table, 0, 1, $"ARP: {stats.ArpIn}");
+            UpdateLabelText(table, 0, 2, $"Ethernet2: {stats.Ethernet2In}");
+            UpdateLabelText(table, 0, 3, $"IP: {stats.IPIn}");
+            UpdateLabelText(table, 0, 4, $"ICMP: {stats.ICMPIn}");
+            UpdateLabelText(table, 0, 5, $"TCP: {stats.TCPIn}");
+            UpdateLabelText(table, 0, 6, $"UDP: {stats.UDPIn}");
+            UpdateLabelText(table, 0, 7, $"Total: {stats.totalIn}");
 
-                var statsInterface2 = packetForwarder.GetStatsInterface2();
+            UpdateLabelText(table, 1, 1, $"ARP: {stats.ArpOut}");
+            UpdateLabelText(table, 1, 2, $"Ethernet2: {stats.Ethernet2Out}");
+            UpdateLabelText(table, 1, 3, $"IP: {stats.IPOut}");
+            UpdateLabelText(table, 1, 4, $"ICMP: {stats.ICMPOut}");
+            UpdateLabelText(table, 1, 5, $"TCP: {stats.TCPOut}");
+            UpdateLabelText(table, 1, 6, $"UDP: {stats.UDPOut}");
+            UpdateLabelText(table, 1, 7, $"Total: {stats.totalOut}");
 
-                UpdateLabelText(this.interface2InOut, 0, 1, $"ARP: {statsInterface2.ArpIn}");
-                UpdateLabelText(this.interface2InOut, 0, 2, $"Ethernet2: {statsInterface2.Ethernet2In}");
-                UpdateLabelText(this.interface2InOut, 0, 3, $"IP: {statsInterface2.IPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 4, $"ICMP: {statsInterface2.ICMPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 5, $"TCP: {statsInterface2.TCPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 6, $"UDP: {statsInterface2.UDPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 7, $"Total: {statsInterface2.totalIn}");
+        }
+        private void AgingTimer_Tick(object sender, EventArgs e)
+        {
+            if (packetForwarder != null)
+            {
+                packetForwarder.GetMacAddressTable().RemoveOldEntries(TimeSpan.FromSeconds((double)agingTimerDuration.Value));
+            }
+        }
 
-                UpdateLabelText(this.interface2InOut, 1, 1, $"ARP: {statsInterface2.ArpOut}");
-                UpdateLabelText(this.interface2InOut, 1, 2, $"Ethernet2: {statsInterface2.Ethernet2Out}");
-                UpdateLabelText(this.interface2InOut, 1, 3, $"IP: {statsInterface2.IPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 4, $"ICMP: {statsInterface2.ICMPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 5, $"TCP: {statsInterface2.TCPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 6, $"UDP: {statsInterface2.UDPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 7, $"Total: {statsInterface2.totalOut}");
+        private void UpdateMacAddressTableUI()
+        {
+            macAddressTableGrid.Rows.Clear();
+
+            var macTable = packetForwarder.GetMacAddressTable().GetTable();
+            foreach (var entry in macTable)
+            {
+                macAddressTableGrid.Rows.Add(
+                    entry.Key.ToString(),
+                    $"Interface {entry.Value.InterfaceIndex}",
+                    entry.Value.LastSeen.ToString("HH:mm:ss")
+                );
             }
         }
         private void UpdateLabelText(TableLayoutPanel table, int column, int row, string text)
@@ -166,6 +177,7 @@ namespace Projekt
                 label.Text = text;
             }
         }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (packetForwarder != null)
