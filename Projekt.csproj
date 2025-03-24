@@ -82,6 +82,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="MACTable.cs" />
     <Compile Include="PacketForwarder.cs" />
     <Compile Include="InterfaceStatistics.cs" />
     <Compile Include="Program.cs" />
