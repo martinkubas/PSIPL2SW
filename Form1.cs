@@ -126,16 +126,20 @@ namespace Projekt
                 UpdateLabelText(this.interface1InOut, 0, 3, $"IP: {statsInterface1.IPIn}");
                 UpdateLabelText(this.interface1InOut, 0, 4, $"ICMP: {statsInterface1.ICMPIn}");
                 UpdateLabelText(this.interface1InOut, 0, 5, $"TCP: {statsInterface1.TCPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 6, $"UDP: {statsInterface1.UDPIn}");
-                UpdateLabelText(this.interface1InOut, 0, 7, $"Total: {statsInterface1.totalIn}");
+                UpdateLabelText(this.interface1InOut, 0, 6, $"HTTP: {statsInterface1.HTTPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 7, $"HTTPS: {statsInterface1.HTTPSIn}");
+                UpdateLabelText(this.interface1InOut, 0, 8, $"UDP: {statsInterface1.UDPIn}");
+                UpdateLabelText(this.interface1InOut, 0, 9, $"Total: {statsInterface1.totalIn}");
                 
                 UpdateLabelText(this.interface1InOut, 1, 1, $"ARP: {statsInterface1.ArpOut}");
                 UpdateLabelText(this.interface1InOut, 1, 2, $"Ethernet2: {statsInterface1.Ethernet2Out}");
                 UpdateLabelText(this.interface1InOut, 1, 3, $"IP: {statsInterface1.IPOut}");
                 UpdateLabelText(this.interface1InOut, 1, 4, $"ICMP: {statsInterface1.ICMPOut}");
                 UpdateLabelText(this.interface1InOut, 1, 5, $"TCP: {statsInterface1.TCPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 6, $"UDP: {statsInterface1.UDPOut}");
-                UpdateLabelText(this.interface1InOut, 1, 7, $"Total: {statsInterface1.totalOut}");
+                UpdateLabelText(this.interface1InOut, 1, 6, $"HTTP: {statsInterface1.HTTPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 7, $"HTTPS: {statsInterface1.HTTPSOut}");
+                UpdateLabelText(this.interface1InOut, 1, 8, $"UDP: {statsInterface1.UDPOut}");
+                UpdateLabelText(this.interface1InOut, 1, 9, $"Total: {statsInterface1.totalOut}");
 
 
                 var statsInterface2 = packetForwarder.GetStatsInterface2();
@@ -145,16 +149,20 @@ namespace Projekt
                 UpdateLabelText(this.interface2InOut, 0, 3, $"IP: {statsInterface2.IPIn}");
                 UpdateLabelText(this.interface2InOut, 0, 4, $"ICMP: {statsInterface2.ICMPIn}");
                 UpdateLabelText(this.interface2InOut, 0, 5, $"TCP: {statsInterface2.TCPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 6, $"UDP: {statsInterface2.UDPIn}");
-                UpdateLabelText(this.interface2InOut, 0, 7, $"Total: {statsInterface2.totalIn}");
+                UpdateLabelText(this.interface2InOut, 0, 6, $"HTTP: {statsInterface2.HTTPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 7, $"HTTPS: {statsInterface2.HTTPSIn}");
+                UpdateLabelText(this.interface2InOut, 0, 8, $"UDP: {statsInterface2.UDPIn}");
+                UpdateLabelText(this.interface2InOut, 0, 9, $"Total: {statsInterface2.totalIn}");
 
                 UpdateLabelText(this.interface2InOut, 1, 1, $"ARP: {statsInterface2.ArpOut}");
                 UpdateLabelText(this.interface2InOut, 1, 2, $"Ethernet2: {statsInterface2.Ethernet2Out}");
                 UpdateLabelText(this.interface2InOut, 1, 3, $"IP: {statsInterface2.IPOut}");
                 UpdateLabelText(this.interface2InOut, 1, 4, $"ICMP: {statsInterface2.ICMPOut}");
                 UpdateLabelText(this.interface2InOut, 1, 5, $"TCP: {statsInterface2.TCPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 6, $"UDP: {statsInterface2.UDPOut}");
-                UpdateLabelText(this.interface2InOut, 1, 7, $"Total: {statsInterface2.totalOut}");
+                UpdateLabelText(this.interface2InOut, 1, 6, $"HTTP: {statsInterface2.HTTPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 7, $"HTTPS: {statsInterface2.HTTPSOut}");
+                UpdateLabelText(this.interface2InOut, 1, 8, $"UDP: {statsInterface2.UDPOut}");
+                UpdateLabelText(this.interface2InOut, 1, 9, $"Total: {statsInterface2.totalOut}");
             }
         }
         private void UpdateLabelText(TableLayoutPanel table, int column, int row, string text)

@@ -29,6 +29,12 @@ namespace Projekt
         public int UDPIn { get; private set; }
         public int UDPOut { get; private set; }
 
+        public int HTTPIn { get; private set; }
+        public int HTTPOut { get; private set; }
+
+        public int HTTPSIn { get; private set; }
+        public int HTTPSOut { get; private set; }
+
         public int totalIn { get; private set; }
         public int totalOut { get; private set; }
         public InterfaceStatistics()
@@ -54,6 +60,12 @@ namespace Projekt
         public void IncrementUDPIn() => UDPIn++;
         public void IncrementUDPOut() => UDPOut++;
 
+        public void IncrementHTTPIn() => HTTPIn++;
+        public void IncrementHTTPOut() => HTTPOut++;
+
+        public void IncrementHTTPSIn() => HTTPSIn++;
+        public void IncrementHTTPSOut() => HTTPSOut++;
+
         public void IncrementTotalIn() => totalIn++;
         public void IncrementTotalOut() => totalOut++;
 
@@ -71,6 +83,10 @@ namespace Projekt
             TCPOut = 0;
             UDPIn = 0;
             UDPOut = 0;
+            HTTPIn = 0;
+            HTTPSIn = 0;
+            HTTPSOut = 0;
+            HTTPOut = 0;
             totalIn = 0;
             totalOut = 0;
         }
@@ -103,7 +119,15 @@ namespace Projekt
                         if (isIncoming) IncrementTCPIn(); 
                         else IncrementTCPOut(); 
 
-                        //HTTP/HTTPS v buducnosti
+                        if(tcpPacket.DestinationPort == 80 || tcpPacket.DestinationPort == 8080)
+                        {
+                            if (isIncoming) IncrementHTTPIn();
+                            else IncrementHTTPOut();
+                        }else if (tcpPacket.DestinationPort == 443)
+                        {
+                            if (isIncoming) IncrementHTTPSIn();
+                            else IncrementHTTPSOut();
+                        }
                         return;
                     }
 
