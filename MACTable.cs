@@ -10,6 +10,7 @@ namespace Projekt
     public class MACTable
     {
         private Dictionary<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)> macTable;
+        private readonly object _lock = new object();
 
         public MACTable()
         {
@@ -32,20 +33,17 @@ namespace Projekt
 
         public void RemoveOldEntries(TimeSpan maxAge)
         {
-            var now = DateTime.Now;
-            var oldEntries = new List<PhysicalAddress>();
-
-            foreach (var entry in macTable)
+            lock (_lock)
             {
-                if (now - entry.Value.LastSeen > maxAge)
+                var now = DateTime.Now;
+                var oldEntries = macTable.Where(entry => now - entry.Value.LastSeen > maxAge)
+                                        .Select(entry => entry.Key)
+                                        .ToList();
+
+                foreach (var mac in oldEntries)
                 {
-                    oldEntries.Add(entry.Key);
+                    macTable.Remove(mac);
                 }
-            }
-
-            foreach (var macAddress in oldEntries)
-            {
-                macTable.Remove(macAddress);
             }
         }
 
@@ -61,7 +59,10 @@ namespace Projekt
 
         public IEnumerable<KeyValuePair<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)>> GetTable()
         {
-            return macTable;
+            lock (_lock)
+            {
+                return new Dictionary<PhysicalAddress, (int, DateTime)>(macTable);
+            }
         }
 
     }

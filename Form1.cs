@@ -55,6 +55,11 @@ namespace Projekt
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            if (comboBoxInterface1.SelectedValue == comboBoxInterface2.SelectedValue)
+            {
+                MessageBox.Show("Interface 1 and Interface 2 must be different.");
+                return;
+            }
             activeInterfaces.Add(comboBoxInterface1.SelectedValue as LibPcapLiveDevice);
             activeInterfaces.Add(comboBoxInterface2.SelectedValue as LibPcapLiveDevice);
 
@@ -135,7 +140,9 @@ namespace Projekt
             UpdateLabelText(table, 0, 4, $"ICMP: {stats.ICMPIn}");
             UpdateLabelText(table, 0, 5, $"TCP: {stats.TCPIn}");
             UpdateLabelText(table, 0, 6, $"UDP: {stats.UDPIn}");
-            UpdateLabelText(table, 0, 7, $"Total: {stats.totalIn}");
+            UpdateLabelText(table, 0, 7, $"HTTP: {stats.HTTPIn}");
+            UpdateLabelText(table, 0, 8, $"HTTPS: {stats.HTTPSIn}");
+            UpdateLabelText(table, 0, 9, $"Total: {stats.totalIn}");
 
             UpdateLabelText(table, 1, 1, $"ARP: {stats.ArpOut}");
             UpdateLabelText(table, 1, 2, $"Ethernet2: {stats.Ethernet2Out}");
@@ -143,7 +150,9 @@ namespace Projekt
             UpdateLabelText(table, 1, 4, $"ICMP: {stats.ICMPOut}");
             UpdateLabelText(table, 1, 5, $"TCP: {stats.TCPOut}");
             UpdateLabelText(table, 1, 6, $"UDP: {stats.UDPOut}");
-            UpdateLabelText(table, 1, 7, $"Total: {stats.totalOut}");
+            UpdateLabelText(table, 1, 7, $"HTTP: {stats.HTTPOut}");
+            UpdateLabelText(table, 1, 8, $"HTTPS: {stats.HTTPSOut}");
+            UpdateLabelText(table, 1, 9, $"Total: {stats.totalOut}");
 
         }
         private void AgingTimer_Tick(object sender, EventArgs e)
@@ -163,7 +172,7 @@ namespace Projekt
             {
                 macAddressTableGrid.Rows.Add(
                     entry.Key.ToString(),
-                    $"Interface {entry.Value.InterfaceIndex}",
+                    $"Interface {entry.Value.InterfaceIndex + 1}",
                     entry.Value.LastSeen.ToString("HH:mm:ss")
                 );
             }

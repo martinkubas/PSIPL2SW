@@ -1,5 +1,4 @@
-﻿using Projekt;
-using SharpPcap.LibPcap;
+﻿using SharpPcap.LibPcap;
 using SharpPcap;
 using System;
 using PacketDotNet;
@@ -12,7 +11,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-
+using PacketDotNet.Ieee80211;
+using System.Diagnostics;
+using static log4net.Appender.FileAppender;
+using Projekt;
 
 public class PacketForwarder
 {
@@ -20,8 +22,8 @@ public class PacketForwarder
     private List<InterfaceStatistics> interfaceStats;
     private MACTable macAddressTable;
 
-    private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
-    private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
+    private ConcurrentQueue<ulong> receivedPackets = new ConcurrentQueue<ulong>();
+    private ConcurrentDictionary<ulong, byte> receivedPacketsHashSet = new ConcurrentDictionary<ulong, byte>();
 
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
@@ -39,7 +41,14 @@ public class PacketForwarder
     {
         foreach (var device in interfaces)
         {
-            device.Open(DeviceModes.Promiscuous, 100);
+
+            device.Open(new DeviceConfiguration
+            {
+                Mode = DeviceModes.Promiscuous,
+                ReadTimeout = 50,
+                BufferSize = 4 * 1024 * 1024,
+
+            });
             device.OnPacketArrival += OnPacketArrival;
             device.StartCapture();
         }
@@ -56,7 +65,7 @@ public class PacketForwarder
             }
         }
 
-        receivedPackets = new ConcurrentQueue<string>();
+        receivedPackets = new ConcurrentQueue<ulong>();
     }
 
     private void OnPacketArrival(object sender, PacketCapture e)
@@ -65,8 +74,10 @@ public class PacketForwarder
 
         var rawPacket = e.GetPacket();
         var packet = Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
-        string packetHash = ComputePacketHash(rawPacket.Data);
 
+        int incomingInterfaceIndex = interfaces.IndexOf(device);
+
+        ulong packetHash = ComputePacketHash(rawPacket.Data);
         if (checkIfWasReceivedBefore(packetHash))
         {
             return;
@@ -74,9 +85,7 @@ public class PacketForwarder
 
         queueControl(packetHash);
 
-        int incomingInterfaceIndex = interfaces.IndexOf(device);
-        
-        checkMacAndSend(packet, incomingInterfaceIndex);
+        checkMacAndSend(packet, incomingInterfaceIndex); 
         updateMacTable(packet, incomingInterfaceIndex);
 
     }
@@ -97,8 +106,22 @@ public class PacketForwarder
         var ethernetPacket = packet.Extract<EthernetPacket>();
         if (ethernetPacket != null)
         {
-            var destinationMac = ethernetPacket.DestinationHardwareAddress;
-            int destinationInterfaceIndex = macAddressTable.GetInterface(destinationMac);
+            var arpPacket = packet.Extract<ArpPacket>();
+            if (arpPacket != null)
+            {
+                sendBroadcast(packet, incomingInterfaceIndex);
+                return;
+            }
+
+            if (ethernetPacket.DestinationHardwareAddress.IsBroadcast() ||
+                ethernetPacket.DestinationHardwareAddress.IsMulticast())
+            {
+                sendBroadcast(packet, incomingInterfaceIndex);
+                return;
+            }
+
+            int destinationInterfaceIndex = macAddressTable.GetInterface(ethernetPacket.DestinationHardwareAddress);
+
             if (destinationInterfaceIndex == -1)
             {
                 sendBroadcast(packet, incomingInterfaceIndex);
@@ -120,12 +143,22 @@ public class PacketForwarder
         {
             if (i == incomingInterfaceIndex) continue;
 
-            sendPacket(interfaces[i], packet, interfaceStats[i]);
+            try
+            {
+                interfaces[i].SendPacket(packet.Bytes);
+                interfaceStats[i].AnalyzePacket(packet, false);
+                interfaceStats[i].IncrementTotalOut();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error forwarding packet: {ex.Message}");
+            }
         }
     }
 
     private void sendUnicast(Packet packet, int destinationInterfaceIndex)
     {
+        Console.WriteLine("Sent unicast packet to: " + destinationInterfaceIndex);
         sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
     }
 
@@ -144,29 +177,30 @@ public class PacketForwarder
         }
     }
 
-    private bool checkIfWasReceivedBefore(string packetHash)
+    private bool checkIfWasReceivedBefore(ulong packetHash)
     {
         return receivedPacketsHashSet.ContainsKey(packetHash);
     }
 
-    private void queueControl(string packetHash)
+    private void queueControl(ulong packetHash)
     {
+
         if (receivedPackets.Count >= 100)
         {
-            if (receivedPackets.TryDequeue(out string oldestHash))
+            if (receivedPackets.TryDequeue(out ulong oldestHash))
             {
                 receivedPacketsHashSet.TryRemove(oldestHash, out _);
             }
         }
 
+
         receivedPackets.Enqueue(packetHash);
         receivedPacketsHashSet[packetHash] = 0;
     }
 
-    private string ComputePacketHash(byte[] packetData)
+    private ulong ComputePacketHash(byte[] packetData)
     {
-        var hashBytes = XxHash64.Hash(packetData);
-        return BitConverter.ToString(hashBytes).Replace("-", "");
+        return XxHash64.HashToUInt64(packetData);
     }
 
     public InterfaceStatistics GetStatsForInterface(int index)

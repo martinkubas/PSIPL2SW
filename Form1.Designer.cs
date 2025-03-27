@@ -113,7 +113,7 @@ namespace Projekt
             //
             // btnResetInt1
             //
-            this.btnResetInt1.Location = new System.Drawing.Point(150, 340);
+            this.btnResetInt1.Location = new System.Drawing.Point(150, 320);
             this.btnResetInt1.Size = new System.Drawing.Size(100, 23);
             this.btnResetInt1.Name = "btnResetInt1";
             this.btnResetInt1.Text = "Reset";
@@ -123,7 +123,7 @@ namespace Projekt
             //
             // btnResetInt2
             //
-            this.btnResetInt2.Location = new System.Drawing.Point(1030, 340);
+            this.btnResetInt2.Location = new System.Drawing.Point(1030, 320);
             this.btnResetInt2.Size = new System.Drawing.Size(100, 23);
             this.btnResetInt2.Name = "btnResetInt2";
             this.btnResetInt2.Text = "Reset";
@@ -154,9 +154,9 @@ namespace Projekt
             this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 3);
             this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 4);
             this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 5);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
-            this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 8);
+            this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
+            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
+            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 8);
             this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 9);
 
             
@@ -165,9 +165,9 @@ namespace Projekt
             this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 3);
             this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 4);
             this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 5);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
-            this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 8);
+            this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
+            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
+            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 8);
             this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 9);
             //
             // interface2InOut
@@ -193,9 +193,9 @@ namespace Projekt
             this.interface2InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 3);
             this.interface2InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 4);
             this.interface2InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 5);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
-            this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 8);
+            this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
+            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
+            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 8);
             this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 9);
                 
 
@@ -204,9 +204,9 @@ namespace Projekt
             this.interface2InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 3);
             this.interface2InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 4);
             this.interface2InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 5);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
-            this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 8);
+            this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
+            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
+            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 8);
             this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 9);
             // 
             // timerStatistics
