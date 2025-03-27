@@ -24,6 +24,7 @@ public class PacketForwarder
 
     private ConcurrentQueue<ulong> receivedPackets = new ConcurrentQueue<ulong>();
     private ConcurrentDictionary<ulong, byte> receivedPacketsHashSet = new ConcurrentDictionary<ulong, byte>();
+    private readonly object _lock = new object();
 
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
@@ -44,7 +45,6 @@ public class PacketForwarder
 
             device.Open(new DeviceConfiguration
             {
-                Mode = DeviceModes.Promiscuous,
                 ReadTimeout = 50,
                 BufferSize = 4 * 1024 * 1024,
 
@@ -70,10 +70,12 @@ public class PacketForwarder
 
     private void OnPacketArrival(object sender, PacketCapture e)
     {
+
         var device = sender as LibPcapLiveDevice;
 
         var rawPacket = e.GetPacket();
         var packet = Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
+
 
         int incomingInterfaceIndex = interfaces.IndexOf(device);
 
@@ -103,32 +105,43 @@ public class PacketForwarder
 
     private void checkMacAndSend(Packet packet, int incomingInterfaceIndex)
     {
-        var ethernetPacket = packet.Extract<EthernetPacket>();
-        if (ethernetPacket != null)
+        lock (_lock)
         {
-            var arpPacket = packet.Extract<ArpPacket>();
-            if (arpPacket != null)
+            var ethernetPacket = packet.Extract<EthernetPacket>();
+            if (ethernetPacket == null) return;
+
+            var srcMac = ethernetPacket.SourceHardwareAddress;
+            var dstMac = ethernetPacket.DestinationHardwareAddress;
+
+            // Always handle broadcast/multicast/ARP
+            if (dstMac.IsBroadcast() || dstMac.IsMulticast() || packet.Extract<ArpPacket>() != null)
             {
                 sendBroadcast(packet, incomingInterfaceIndex);
                 return;
             }
 
-            if (ethernetPacket.DestinationHardwareAddress.IsBroadcast() ||
-                ethernetPacket.DestinationHardwareAddress.IsMulticast())
-            {
-                sendBroadcast(packet, incomingInterfaceIndex);
-                return;
-            }
+            // Update source MAC mapping (always)
+            macAddressTable.AddOrUpdate(srcMac, incomingInterfaceIndex);
 
-            int destinationInterfaceIndex = macAddressTable.GetInterface(ethernetPacket.DestinationHardwareAddress);
+            // Get destination interface
+            int dstInterface = macAddressTable.GetInterface(dstMac);
 
-            if (destinationInterfaceIndex == -1)
+            // Decision making
+            if (dstInterface == -1)
             {
+                // Unknown destination - broadcast
                 sendBroadcast(packet, incomingInterfaceIndex);
             }
-            else if (destinationInterfaceIndex != incomingInterfaceIndex)
+            else if (dstInterface == incomingInterfaceIndex)
             {
-                sendUnicast(packet, destinationInterfaceIndex);
+                // Destination is on same interface as incoming - drop
+                Console.WriteLine($"Dropped: Destination on same interface (src={srcMac}, dst={dstMac})");
+            }
+            else
+            {
+                // Valid forwarding case
+                Console.WriteLine($"Forwarding: {srcMac}->{dstMac} from {incomingInterfaceIndex} to {dstInterface}");
+                sendUnicast(packet, dstInterface);
             }
         }
     }
@@ -213,7 +226,7 @@ public class PacketForwarder
     }
     public MACTable GetMacAddressTable()
     {
-        return this.macAddressTable;
+        return this.macAddressTable;    
     }
 
 }
