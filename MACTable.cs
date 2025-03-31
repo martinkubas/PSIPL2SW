@@ -12,6 +12,7 @@ namespace Projekt
         private Dictionary<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)> macTable;
         private Dictionary<PhysicalAddress, List<(int InterfaceIndex, DateTime LastSeen)>> history = new Dictionary<PhysicalAddress, List<(int, DateTime)>>();
         private readonly object _lock = new object();
+        private TimeSpan minimumHoldTime = TimeSpan.FromSeconds(2); // Minimum time before allowing interface change
 
         public MACTable()
         {
@@ -22,34 +23,46 @@ namespace Projekt
         {
             lock (_lock)
             {
-                // Track history
-                if (!history.ContainsKey(macAddress))
-                    history[macAddress] = new List<(int, DateTime)>();
-
-                history[macAddress].Add((interfaceIndex, DateTime.Now));
-
-                // Keep only last 5 entries
-                if (history[macAddress].Count > 5)
-                    history[macAddress].RemoveAt(0);
-
-                // If flapping between interfaces, don't update
-                if (history[macAddress].Select(x => x.InterfaceIndex).Distinct().Count() > 1)
+                if (macTable.TryGetValue(macAddress, out var current))
                 {
-                    Console.WriteLine($"MAC flapping detected: {macAddress}");
-                    return;
+                    // Only update if:
+                    // 1. Interface actually changed, AND
+                    // 2. Enough time has passed since last update, OR
+                    // 3. The MAC hasn't been seen in a while (stale entry)
+                    if (current.InterfaceIndex != interfaceIndex)
+                    {
+                        var timeSinceLastSeen = DateTime.Now - current.LastSeen;
+                        if (timeSinceLastSeen > minimumHoldTime || timeSinceLastSeen > TimeSpan.FromMinutes(5))
+                        {
+                            macTable[macAddress] = (interfaceIndex, DateTime.Now);
+                            Console.WriteLine($"MAC {macAddress} moved from interface {current.InterfaceIndex} to {interfaceIndex}");
+                        }
+                    }
+                    else
+                    {
+                        // Just update timestamp for existing entry
+                        macTable[macAddress] = (current.InterfaceIndex, DateTime.Now);
+                    }
                 }
-
-                macTable[macAddress] = (interfaceIndex, DateTime.Now);
+                else
+                {
+                    // New MAC address
+                    macTable[macAddress] = (interfaceIndex, DateTime.Now);
+                }
             }
         }
 
         public int GetInterface(PhysicalAddress macAddress)
         {
-            if (macTable.TryGetValue(macAddress, out var entry))
+            lock (_lock)
             {
-                return entry.InterfaceIndex;
+
+                if (macTable.TryGetValue(macAddress, out var entry))
+                {
+                    return entry.InterfaceIndex;
+                }
+                return -1;
             }
-            return -1;
         }
 
         public void RemoveOldEntries(TimeSpan maxAge)
