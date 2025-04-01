@@ -11,9 +11,11 @@ namespace Projekt
     {
         private Dictionary<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)> macTable;
         private object _lock = new object();
-        private Dictionary<PhysicalAddress, Queue<(int InterfaceIndex, DateTime LastSeen)>> history = new Dictionary<PhysicalAddress, Queue<(int, DateTime)>>(); public MACTable()
+        private Dictionary<PhysicalAddress, Queue<int>> history = new Dictionary<PhysicalAddress, Queue<int>>();
+        public MACTable()
         {
             macTable = new Dictionary<PhysicalAddress, (int, DateTime)>();
+            history = new Dictionary<PhysicalAddress, Queue<int>>();
         }
 
         public void AddOrUpdate(PhysicalAddress macAddress, int interfaceIndex)
@@ -24,11 +26,11 @@ namespace Projekt
 
                 if (!history.TryGetValue(macAddress, out var packetHistory))
                 {
-                    packetHistory = new Queue<(int, DateTime)>();
+                    packetHistory = new Queue<int>();
                     history[macAddress] = packetHistory;
                 }
 
-                packetHistory.Enqueue((interfaceIndex, currentTime));
+                packetHistory.Enqueue(interfaceIndex);
 
                 while (packetHistory.Count > 3)
                 {
@@ -63,11 +65,11 @@ namespace Projekt
                 return true;
             }
 
-            bool allSameInterface = packetHistory.All(x => x.InterfaceIndex == newInterface);
+            bool allSameInterface = packetHistory.All(x => x == newInterface);
 
             int currentInterface = macTable.TryGetValue(macAddress, out var entry) ? entry.InterfaceIndex : -1;
 
-            return allSameInterface && newInterface != currentInterface;
+            return allSameInterface && (newInterface != currentInterface);
         }
         public int GetInterface(PhysicalAddress macAddress)
         {

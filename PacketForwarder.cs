@@ -114,6 +114,8 @@ public class PacketForwarder
             }
             else if (destinationInterfaceIndex != incomingInterfaceIndex)
             {
+                interfaceStats[incomingInterfaceIndex].AnalyzePacket(packet, true);
+                interfaceStats[incomingInterfaceIndex].IncrementTotalIn();
                 sendUnicast(packet, destinationInterfaceIndex);
             }
         }
@@ -121,20 +123,23 @@ public class PacketForwarder
 
     private void sendBroadcast(Packet packet, int incomingInterfaceIndex)
     {
-        InterfaceStatistics stats = interfaceStats[incomingInterfaceIndex];
-        stats.AnalyzePacket(packet, true);
-        stats.IncrementTotalIn();
+        interfaceStats[incomingInterfaceIndex].AnalyzePacket(packet, true);
+        interfaceStats[incomingInterfaceIndex].IncrementTotalIn();
 
         for (int i = 0; i < interfaces.Count; i++)
         {
             if (i == incomingInterfaceIndex) continue;
 
             sendPacket(interfaces[i], packet, interfaceStats[i]);
+            interfaceStats[i].AnalyzePacket(packet, false);
+            interfaceStats[i].IncrementTotalOut();
         }
     }
 
     private void sendUnicast(Packet packet, int destinationInterfaceIndex)
     {
+        interfaceStats[destinationInterfaceIndex].AnalyzePacket(packet, false);
+        interfaceStats[destinationInterfaceIndex].IncrementTotalOut();
         sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
     }
 
