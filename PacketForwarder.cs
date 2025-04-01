@@ -1,4 +1,5 @@
-﻿using SharpPcap.LibPcap;
+﻿using Projekt;
+using SharpPcap.LibPcap;
 using SharpPcap;
 using System;
 using PacketDotNet;
@@ -11,10 +12,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using PacketDotNet.Ieee80211;
-using System.Diagnostics;
-using static log4net.Appender.FileAppender;
-using Projekt;
+using System.Threading;
 
 public class PacketForwarder
 {
@@ -22,9 +20,8 @@ public class PacketForwarder
     private List<InterfaceStatistics> interfaceStats;
     private MACTable macAddressTable;
 
-    private ConcurrentQueue<ulong> receivedPackets = new ConcurrentQueue<ulong>();
-    private ConcurrentDictionary<ulong, byte> receivedPacketsHashSet = new ConcurrentDictionary<ulong, byte>();
-    private readonly object _lock = new object();
+    private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
+    private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
 
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
@@ -37,12 +34,10 @@ public class PacketForwarder
             interfaceStats.Add(new InterfaceStatistics());
         }
     }
-
     public void Start()
     {
         foreach (var device in interfaces)
         {
-
             device.Open(new DeviceConfiguration
             {
                 Mode = DeviceModes.Promiscuous,
@@ -53,6 +48,7 @@ public class PacketForwarder
             device.OnPacketArrival += OnPacketArrival;
             device.StartCapture();
         }
+
     }
 
     public void Stop()
@@ -66,21 +62,17 @@ public class PacketForwarder
             }
         }
 
-        receivedPackets = new ConcurrentQueue<ulong>();
+        receivedPackets = new ConcurrentQueue<string>();
+        macAddressTable.Clear();
     }
-
+      
     private void OnPacketArrival(object sender, PacketCapture e)
     {
-
         var device = sender as LibPcapLiveDevice;
-
         var rawPacket = e.GetPacket();
         var packet = Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
-        
+        string packetHash = ComputePacketHash(rawPacket.Data);
 
-        int incomingInterfaceIndex = interfaces.IndexOf(device);
-
-        ulong packetHash = ComputePacketHash(rawPacket.Data);
         if (checkIfWasReceivedBefore(packetHash))
         {
             return;
@@ -88,64 +80,44 @@ public class PacketForwarder
 
         queueControl(packetHash);
 
-        checkMacAndSend(packet, incomingInterfaceIndex); 
-        updateMacTable(packet, incomingInterfaceIndex);
+        int incomingInterfaceIndex = interfaces.IndexOf(device);
 
-    }
-
-    private void updateMacTable(Packet packet, int incomingInterfaceIndex)
-    {
         var ethernetPacket = packet.Extract<EthernetPacket>();
         if (ethernetPacket != null)
         {
             var sourceMac = ethernetPacket.SourceHardwareAddress;
             macAddressTable.AddOrUpdate(sourceMac, incomingInterfaceIndex);
-
         }
+
+        checkMacAndSend(packet, incomingInterfaceIndex);
+
     }
 
     private void checkMacAndSend(Packet packet, int incomingInterfaceIndex)
-{
-    lock (_lock)
     {
         var ethernetPacket = packet.Extract<EthernetPacket>();
-        if (ethernetPacket == null) return;
-
-        var srcMac = ethernetPacket.SourceHardwareAddress;
-        var dstMac = ethernetPacket.DestinationHardwareAddress;
-
-        // Always handle broadcast/multicast/ARP
-        if (dstMac.IsBroadcast() || dstMac.IsMulticast() || packet.Extract<ArpPacket>() != null)
+        if (ethernetPacket != null)
         {
-            sendBroadcast(packet, incomingInterfaceIndex);
-            return;
-        }
+            var destinationMac = ethernetPacket.DestinationHardwareAddress;
 
-        // Update source MAC mapping (always)
-        macAddressTable.AddOrUpdate(srcMac, incomingInterfaceIndex);
+            if (destinationMac == PhysicalAddress.Parse("FF-FF-FF-FF-FF-FF") ||
+                (destinationMac.GetAddressBytes()[0] & 0x01) == 0x01)
+            {
+                sendBroadcast(packet, incomingInterfaceIndex);
+                return;
+            }
 
-        // Get destination interface
-        int dstInterface = macAddressTable.GetInterface(dstMac);
-
-        // Decision making
-        if (dstInterface == -1)
-        {
-            // Unknown destination - broadcast
-            sendBroadcast(packet, incomingInterfaceIndex);
-        }
-        else if (dstInterface == incomingInterfaceIndex)
-        {
-            // Destination is on same interface as incoming - drop
-            Console.WriteLine($"Dropped: Destination on same interface (src={srcMac}, dst={dstMac})");
-        }
-        else
-        {
-            // Valid forwarding case
-            Console.WriteLine($"Forwarding: {srcMac}->{dstMac} from {incomingInterfaceIndex} to {dstInterface}");
-            sendUnicast(packet, dstInterface);
+            int destinationInterfaceIndex = macAddressTable.GetInterface(destinationMac);
+            if (destinationInterfaceIndex == -1)
+            {
+                sendBroadcast(packet, incomingInterfaceIndex);
+            }
+            else if (destinationInterfaceIndex != incomingInterfaceIndex)
+            {
+                sendUnicast(packet, destinationInterfaceIndex);
+            }
         }
     }
-}
 
     private void sendBroadcast(Packet packet, int incomingInterfaceIndex)
     {
@@ -157,22 +129,12 @@ public class PacketForwarder
         {
             if (i == incomingInterfaceIndex) continue;
 
-            try
-            {
-                interfaces[i].SendPacket(packet.Bytes);
-                interfaceStats[i].AnalyzePacket(packet, false);
-                interfaceStats[i].IncrementTotalOut();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error forwarding packet: {ex.Message}");
-            }
+            sendPacket(interfaces[i], packet, interfaceStats[i]);
         }
     }
 
     private void sendUnicast(Packet packet, int destinationInterfaceIndex)
     {
-        Console.WriteLine("Sent unicast packet to: " + destinationInterfaceIndex);
         sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
     }
 
@@ -187,34 +149,33 @@ public class PacketForwarder
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error forwarding packet: {ex.Message}");
+            Console.WriteLine("Cannot Send Packet!" + ex.Message);
         }
     }
 
-    private bool checkIfWasReceivedBefore(ulong packetHash)
+    private bool checkIfWasReceivedBefore(string packetHash)
     {
         return receivedPacketsHashSet.ContainsKey(packetHash);
     }
 
-    private void queueControl(ulong packetHash)
+    private void queueControl(string packetHash)
     {
-
         if (receivedPackets.Count >= 100)
         {
-            if (receivedPackets.TryDequeue(out ulong oldestHash))
+            if (receivedPackets.TryDequeue(out string oldestHash))
             {
                 receivedPacketsHashSet.TryRemove(oldestHash, out _);
             }
         }
 
-
         receivedPackets.Enqueue(packetHash);
         receivedPacketsHashSet[packetHash] = 0;
     }
 
-    private ulong ComputePacketHash(byte[] packetData)
+    private string ComputePacketHash(byte[] packetData)
     {
-        return XxHash64.HashToUInt64(packetData);
+        var hashBytes = XxHash64.Hash(packetData);
+        return BitConverter.ToString(hashBytes).Replace("-", "");
     }
 
     public InterfaceStatistics GetStatsForInterface(int index)
@@ -227,7 +188,7 @@ public class PacketForwarder
     }
     public MACTable GetMacAddressTable()
     {
-        return this.macAddressTable;    
+        return this.macAddressTable;
     }
 
 }

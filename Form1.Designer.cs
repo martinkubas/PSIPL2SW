@@ -16,16 +16,18 @@ namespace Projekt
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Button btnResetInt1;
         private System.Windows.Forms.Button btnResetInt2;
+        private System.Windows.Forms.Button btnResetMAC;
+
 
         private System.Windows.Forms.Timer timerStatistics;
 
         private System.Windows.Forms.TableLayoutPanel interface1InOut;
         private System.Windows.Forms.TableLayoutPanel interface2InOut;
 
-        private System.Windows.Forms.DataGridView macAddressTableGrid; 
-        private System.Windows.Forms.NumericUpDown agingTimerDuration; 
-        private System.Windows.Forms.Label lblAgingTimerDuration; 
-        private System.Windows.Forms.Timer agingTimer; 
+        private System.Windows.Forms.DataGridView macAddressTableGrid;
+        private System.Windows.Forms.NumericUpDown agingTimerDuration;
+        private System.Windows.Forms.Label lblAgingTimerDuration;
+        private System.Windows.Forms.Timer agingTimer;
 
 
         protected override void Dispose(bool disposing)
@@ -60,6 +62,7 @@ namespace Projekt
             this.macAddressTableGrid = new System.Windows.Forms.DataGridView();
             this.agingTimerDuration = new System.Windows.Forms.NumericUpDown();
             this.lblAgingTimerDuration = new System.Windows.Forms.Label();
+            this.btnResetMAC = new System.Windows.Forms.Button();
             this.agingTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
@@ -113,7 +116,7 @@ namespace Projekt
             //
             // btnResetInt1
             //
-            this.btnResetInt1.Location = new System.Drawing.Point(150, 320);
+            this.btnResetInt1.Location = new System.Drawing.Point(150, 300);
             this.btnResetInt1.Size = new System.Drawing.Size(100, 23);
             this.btnResetInt1.Name = "btnResetInt1";
             this.btnResetInt1.Text = "Reset";
@@ -123,7 +126,7 @@ namespace Projekt
             //
             // btnResetInt2
             //
-            this.btnResetInt2.Location = new System.Drawing.Point(1030, 320);
+            this.btnResetInt2.Location = new System.Drawing.Point(1030, 300);
             this.btnResetInt2.Size = new System.Drawing.Size(100, 23);
             this.btnResetInt2.Name = "btnResetInt2";
             this.btnResetInt2.Text = "Reset";
@@ -134,11 +137,11 @@ namespace Projekt
             // interface1InOut
             //
             this.interface1InOut.ColumnCount = 2;
-            this.interface1InOut.RowCount = 10; 
-            this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); 
+            this.interface1InOut.RowCount = 8;
+            this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             this.interface1InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
 
-            this.interface1InOut.Size = new System.Drawing.Size(350, 190); 
+            this.interface1InOut.Size = new System.Drawing.Size(350, 150);
             this.interface1InOut.Location = new System.Drawing.Point(50, 120);
             this.interface1InOut.Paint += (sender, e) =>
             {
@@ -148,27 +151,23 @@ namespace Projekt
             this.interface1InOut.Controls.Add(new Label { Text = "IN", AutoSize = true, Font = new Font("Courier New", 12F, System.Drawing.FontStyle.Bold) }, 0, 0);
             this.interface1InOut.Controls.Add(new Label { Text = "OUT", AutoSize = true, Font = new Font("Courier New", 12F, System.Drawing.FontStyle.Bold) }, 1, 0);
 
-            
+
             this.interface1InOut.Controls.Add(new Label { Text = "ARP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 1);
             this.interface1InOut.Controls.Add(new Label { Text = "Ethernet2: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 2);
-            this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 3);
-            this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 4);
-            this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 5);
+            this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 3);
+            this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 4);
+            this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 5);
             this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 8);
-            this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 0, 9);
+            this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
 
-            
-            this.interface1InOut.Controls.Add(new Label { Text = "ARP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 1);
-            this.interface1InOut.Controls.Add(new Label { Text = "Ethernet2: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 2);
-            this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 3);
-            this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 4);
-            this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 5);
+
+            this.interface1InOut.Controls.Add(new Label { Text = "ARP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 1);
+            this.interface1InOut.Controls.Add(new Label { Text = "Ethernet2: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 2);
+            this.interface1InOut.Controls.Add(new Label { Text = "IP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 3);
+            this.interface1InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 4);
+            this.interface1InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 5);
             this.interface1InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
-            this.interface1InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 8);
-            this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true , Font = new Font("Courier New", 12F) }, 1, 9);
+            this.interface1InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
             //
             // interface2InOut
             //
@@ -176,8 +175,8 @@ namespace Projekt
             this.interface2InOut.RowCount = 8;
             this.interface2InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             this.interface2InOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-           
-            this.interface2InOut.Size = new System.Drawing.Size(350, 190);
+
+            this.interface2InOut.Size = new System.Drawing.Size(350, 150);
             this.interface2InOut.Location = new System.Drawing.Point(880, 120);
             this.interface2InOut.Paint += (sender, e) =>
             {
@@ -194,10 +193,8 @@ namespace Projekt
             this.interface2InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 4);
             this.interface2InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 5);
             this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 6);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 8);
-            this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 9);
-                
+            this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 0, 7);
+
 
             this.interface2InOut.Controls.Add(new Label { Text = "ARP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 1);
             this.interface2InOut.Controls.Add(new Label { Text = "Ethernet2: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 2);
@@ -205,9 +202,7 @@ namespace Projekt
             this.interface2InOut.Controls.Add(new Label { Text = "ICMP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 4);
             this.interface2InOut.Controls.Add(new Label { Text = "TCP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 5);
             this.interface2InOut.Controls.Add(new Label { Text = "UDP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 6);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTP: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
-            this.interface2InOut.Controls.Add(new Label { Text = "HTTPS: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 8);
-            this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 9);
+            this.interface2InOut.Controls.Add(new Label { Text = "Total: 0", AutoSize = true, Font = new Font("Courier New", 12F) }, 1, 7);
             // 
             // timerStatistics
             // 
@@ -264,6 +259,15 @@ namespace Projekt
             // 
             this.agingTimer.Interval = 1000;
             this.agingTimer.Tick += new System.EventHandler(this.AgingTimer_Tick);
+            //
+            //
+            //
+            this.btnResetMAC.Location = new System.Drawing.Point(50, 560);
+            this.btnResetMAC.Size = new System.Drawing.Size(100, 23);
+            this.btnResetMAC.Name = "btnResetMAC";
+            this.btnResetMAC.Text = "Reset";
+            this.btnResetMAC.UseVisualStyleBackColor = true;
+            this.btnResetMAC.Click += new System.EventHandler(this.btnResetMAC_Click);
             // 
             // Form1
             // 
@@ -287,7 +291,7 @@ namespace Projekt
             this.Controls.Add(this.macAddressTableGrid);
             this.Controls.Add(this.agingTimerDuration);
             this.Controls.Add(this.lblAgingTimerDuration);
-
+            this.Controls.Add(this.btnResetMAC);
 
             this.Name = "Form1";
             this.Text = "Ethernet Hub";

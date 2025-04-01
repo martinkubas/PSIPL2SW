@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.NetworkInformation; 
+using System.Net.NetworkInformation;
 
 namespace Projekt
 {
     public class MACTable
     {
         private Dictionary<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)> macTable;
-        private Dictionary<PhysicalAddress, List<(int InterfaceIndex, DateTime LastSeen)>> history = new Dictionary<PhysicalAddress, List<(int, DateTime)>>();
-        private readonly object _lock = new object();
-        private TimeSpan minimumHoldTime = TimeSpan.FromSeconds(2); // Minimum time before allowing interface change
-
-        public MACTable()
+        private object _lock = new object();
+        private Dictionary<PhysicalAddress, Queue<(int InterfaceIndex, DateTime LastSeen)>> history = new Dictionary<PhysicalAddress, Queue<(int, DateTime)>>(); public MACTable()
         {
             macTable = new Dictionary<PhysicalAddress, (int, DateTime)>();
         }
@@ -23,45 +20,78 @@ namespace Projekt
         {
             lock (_lock)
             {
-                if (macTable.TryGetValue(macAddress, out var current))
+                var currentTime = DateTime.Now;
+
+                if (!history.TryGetValue(macAddress, out var packetHistory))
                 {
-                    // Only update if:
-                    // 1. Interface actually changed, AND
-                    // 2. Enough time has passed since last update, OR
-                    // 3. The MAC hasn't been seen in a while (stale entry)
-                    if (current.InterfaceIndex != interfaceIndex)
+                    packetHistory = new Queue<(int, DateTime)>();
+                    history[macAddress] = packetHistory;
+                }
+
+                packetHistory.Enqueue((interfaceIndex, currentTime));
+
+                while (packetHistory.Count > 3)
+                {
+                    packetHistory.Dequeue();
+                }
+
+                if (macTable.TryGetValue(macAddress, out var existingEntry))
+                {
+                    int newInterface = ShouldUpdateInterface(macAddress, interfaceIndex)
+                        ? interfaceIndex
+                        : existingEntry.InterfaceIndex;
+
+                    if (newInterface != existingEntry.InterfaceIndex)
                     {
-                        var timeSinceLastSeen = DateTime.Now - current.LastSeen;
-                        if (timeSinceLastSeen > minimumHoldTime || timeSinceLastSeen > TimeSpan.FromMinutes(5))
-                        {
-                            macTable[macAddress] = (interfaceIndex, DateTime.Now);
-                            Console.WriteLine($"MAC {macAddress} moved from interface {current.InterfaceIndex} to {interfaceIndex}");
-                        }
+                        RemoveEntriesForInterface(existingEntry.InterfaceIndex);
+                        RemoveEntriesForInterface(newInterface);
                     }
-                    else
-                    {
-                        // Just update timestamp for existing entry
-                        macTable[macAddress] = (current.InterfaceIndex, DateTime.Now);
-                    }
+
+                    macTable[macAddress] = (newInterface, currentTime);
                 }
                 else
                 {
-                    // New MAC address
-                    macTable[macAddress] = (interfaceIndex, DateTime.Now);
+                    macTable[macAddress] = (interfaceIndex, currentTime);
                 }
             }
         }
+        private bool ShouldUpdateInterface(PhysicalAddress macAddress, int newInterface)
+        {
+            if (!history.TryGetValue(macAddress, out var packetHistory) || packetHistory.Count < 3)
+            {
 
+                return true;
+            }
+
+            bool allSameInterface = packetHistory.All(x => x.InterfaceIndex == newInterface);
+
+            int currentInterface = macTable.TryGetValue(macAddress, out var entry) ? entry.InterfaceIndex : -1;
+
+            return allSameInterface && newInterface != currentInterface;
+        }
         public int GetInterface(PhysicalAddress macAddress)
         {
             lock (_lock)
             {
-
                 if (macTable.TryGetValue(macAddress, out var entry))
                 {
                     return entry.InterfaceIndex;
                 }
                 return -1;
+            }
+        }
+        public void RemoveEntriesForInterface(int interfaceIndex)
+        {
+            lock (_lock)
+            {
+                var interfaceEntries = macTable.Where(entry => entry.Value.InterfaceIndex == interfaceIndex)
+                                             .Select(entry => entry.Key)
+                                             .ToList();
+
+                foreach (var macAddress in interfaceEntries)
+                {
+                    Remove(macAddress);
+                }
             }
         }
 
@@ -70,13 +100,13 @@ namespace Projekt
             lock (_lock)
             {
                 var now = DateTime.Now;
-                var oldEntries = macTable.Where(entry => now - entry.Value.LastSeen > maxAge)
-                                        .Select(entry => entry.Key)
-                                        .ToList();
+                var oldEntries = macTable.Where(entry => (now - entry.Value.LastSeen) > maxAge)
+                                         .Select(entry => entry.Key)
+                                         .ToList();
 
-                foreach (var mac in oldEntries)
+                foreach (var macAddress in oldEntries)
                 {
-                    macTable.Remove(mac);
+                    Remove(macAddress);
                 }
             }
         }
@@ -84,18 +114,30 @@ namespace Projekt
         public void Remove(PhysicalAddress macAddress)
         {
             macTable.Remove(macAddress);
+            history.Remove(macAddress);
         }
 
         public void Clear()
         {
-            macTable.Clear();
+            lock (_lock)
+            {
+                macTable.Clear();
+                history.Clear();
+            }
         }
 
         public IEnumerable<KeyValuePair<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)>> GetTable()
         {
+            return macTable;
+        }
+        public List<(PhysicalAddress Mac, int Interface, int AgeSeconds)> GetTableEntries()
+        {
             lock (_lock)
             {
-                return new Dictionary<PhysicalAddress, (int, DateTime)>(macTable);
+                var now = DateTime.Now;
+                return macTable.Select(entry =>
+                    (entry.Key, entry.Value.InterfaceIndex, (int)(now - entry.Value.LastSeen).TotalSeconds))
+                    .ToList();
             }
         }
 

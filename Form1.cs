@@ -46,19 +46,18 @@ namespace Projekt
 
             comboBoxInterface1.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + " | " + d.Interface.Description }).ToList();
             comboBoxInterface1.DisplayMember = "Name";
-            comboBoxInterface1.ValueMember = "Device"; 
+            comboBoxInterface1.ValueMember = "Device";
 
             comboBoxInterface2.DataSource = devices.Select(d => new { Device = d, Name = d.Interface.FriendlyName + " | " + d.Interface.Description }).ToList();
             comboBoxInterface2.DisplayMember = "Name";
-            comboBoxInterface2.ValueMember = "Device"; 
+            comboBoxInterface2.ValueMember = "Device";
         }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if (comboBoxInterface1.SelectedValue == comboBoxInterface2.SelectedValue)
+            if(comboBoxInterface1.SelectedValue == comboBoxInterface2.SelectedValue)
             {
-                MessageBox.Show("Interface 1 and Interface 2 must be different.");
-                return;
+                MessageBox.Show("The devices cannot be the same");
             }
             activeInterfaces.Add(comboBoxInterface1.SelectedValue as LibPcapLiveDevice);
             activeInterfaces.Add(comboBoxInterface2.SelectedValue as LibPcapLiveDevice);
@@ -108,14 +107,20 @@ namespace Projekt
         {
             if (packetForwarder != null)
             {
-                for(int i = 0; i < activeInterfaces.Count; i++)
+                for (int i = 0; i < activeInterfaces.Count; i++)
                 {
                     var stats = packetForwarder.GetStatsForInterface(i);
                     stats.Reset();
                 }
             }
         }
-
+        private void btnResetMAC_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder != null)
+            {
+                packetForwarder.GetMacAddressTable().Clear();
+            }
+        }
         private void timerStatistics_Tick(object sender, EventArgs e)
         {
             if (packetForwarder != null)
@@ -140,9 +145,7 @@ namespace Projekt
             UpdateLabelText(table, 0, 4, $"ICMP: {stats.ICMPIn}");
             UpdateLabelText(table, 0, 5, $"TCP: {stats.TCPIn}");
             UpdateLabelText(table, 0, 6, $"UDP: {stats.UDPIn}");
-            UpdateLabelText(table, 0, 7, $"HTTP: {stats.HTTPIn}");
-            UpdateLabelText(table, 0, 8, $"HTTPS: {stats.HTTPSIn}");
-            UpdateLabelText(table, 0, 9, $"Total: {stats.totalIn}");
+            UpdateLabelText(table, 0, 7, $"Total: {stats.totalIn}");
 
             UpdateLabelText(table, 1, 1, $"ARP: {stats.ArpOut}");
             UpdateLabelText(table, 1, 2, $"Ethernet2: {stats.Ethernet2Out}");
@@ -150,9 +153,7 @@ namespace Projekt
             UpdateLabelText(table, 1, 4, $"ICMP: {stats.ICMPOut}");
             UpdateLabelText(table, 1, 5, $"TCP: {stats.TCPOut}");
             UpdateLabelText(table, 1, 6, $"UDP: {stats.UDPOut}");
-            UpdateLabelText(table, 1, 7, $"HTTP: {stats.HTTPOut}");
-            UpdateLabelText(table, 1, 8, $"HTTPS: {stats.HTTPSOut}");
-            UpdateLabelText(table, 1, 9, $"Total: {stats.totalOut}");
+            UpdateLabelText(table, 1, 7, $"Total: {stats.totalOut}");
 
         }
         private void AgingTimer_Tick(object sender, EventArgs e)
@@ -165,17 +166,24 @@ namespace Projekt
 
         private void UpdateMacAddressTableUI()
         {
-            macAddressTableGrid.Rows.Clear();
-
-            var macTable = packetForwarder.GetMacAddressTable().GetTable();
-            foreach (var entry in macTable)
+            try
             {
-                macAddressTableGrid.Rows.Add(
-                    entry.Key.ToString(),
-                    $"Interface {entry.Value.InterfaceIndex + 1}",
-                    entry.Value.LastSeen.ToString("HH:mm:ss")
-                );
+                macAddressTableGrid.Rows.Clear();
+
+                var macTable = packetForwarder.GetMacAddressTable().GetTable();
+                foreach (var entry in macTable)
+                {
+                    macAddressTableGrid.Rows.Add(
+                        entry.Key.ToString(),
+                        $"Interface {entry.Value.InterfaceIndex + 1}",
+                        entry.Value.LastSeen.ToString("HH:mm:ss")
+                    );
+                }
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
+            
         }
         private void UpdateLabelText(TableLayoutPanel table, int column, int row, string text)
         {
