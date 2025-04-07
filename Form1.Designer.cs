@@ -30,6 +30,10 @@ namespace Projekt
         private System.Windows.Forms.Timer agingTimer;
 
 
+        private System.Windows.Forms.DataGridView ruleTableGrid;
+        private System.Windows.Forms.Button btnAddRule;
+        private System.Windows.Forms.Button btnRemoveRule;
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -64,6 +68,11 @@ namespace Projekt
             this.lblAgingTimerDuration = new System.Windows.Forms.Label();
             this.btnResetMAC = new System.Windows.Forms.Button();
             this.agingTimer = new System.Windows.Forms.Timer(this.components);
+
+            this.ruleTableGrid = new System.Windows.Forms.DataGridView();
+            this.btnAddRule = new System.Windows.Forms.Button();
+            this.btnRemoveRule = new System.Windows.Forms.Button();
+
             this.SuspendLayout();
             // 
             // lblInterface1
@@ -217,16 +226,16 @@ namespace Projekt
             this.macAddressTableGrid.Columns.Add("MACAddress", "MAC Address"); // Column 1: MAC Address
             this.macAddressTableGrid.Columns.Add("Interface", "Interface");   // Column 2: Interface
             this.macAddressTableGrid.Columns.Add("LastSeen", "Last Seen");    // Column 3: Last Seen
-            this.macAddressTableGrid.Location = new System.Drawing.Point(50, 350);
+            this.macAddressTableGrid.Location = new System.Drawing.Point(420, 120);
             this.macAddressTableGrid.Name = "macAddressTableGrid";
             this.macAddressTableGrid.ReadOnly = true;
             this.macAddressTableGrid.RowHeadersVisible = false;
             this.macAddressTableGrid.RowTemplate.Height = 24;
-            this.macAddressTableGrid.Size = new System.Drawing.Size(1180, 200);
+            this.macAddressTableGrid.Size = new System.Drawing.Size(450, 200);
             // 
             // agingTimerDuration
             // 
-            this.agingTimerDuration.Location = new System.Drawing.Point(1100, 560);
+            this.agingTimerDuration.Location = new System.Drawing.Point(770, 330);
             this.agingTimerDuration.Maximum = new decimal(new int[] {
             3600,
             0,
@@ -249,7 +258,7 @@ namespace Projekt
             // lblAgingTimerDuration
             // 
             this.lblAgingTimerDuration.AutoSize = true;
-            this.lblAgingTimerDuration.Location = new System.Drawing.Point(940, 562);
+            this.lblAgingTimerDuration.Location = new System.Drawing.Point(605, 333);
             this.lblAgingTimerDuration.Name = "lblAgingTimerDuration";
             this.lblAgingTimerDuration.Size = new System.Drawing.Size(200, 16);
             this.lblAgingTimerDuration.Text = "Aging Timer Duration (seconds):";
@@ -260,14 +269,68 @@ namespace Projekt
             this.agingTimer.Interval = 1000;
             this.agingTimer.Tick += new System.EventHandler(this.AgingTimer_Tick);
             //
+            //btnResetMAC
             //
-            //
-            this.btnResetMAC.Location = new System.Drawing.Point(50, 560);
+            this.btnResetMAC.Location = new System.Drawing.Point(420, 330);
             this.btnResetMAC.Size = new System.Drawing.Size(100, 23);
             this.btnResetMAC.Name = "btnResetMAC";
             this.btnResetMAC.Text = "Reset";
             this.btnResetMAC.UseVisualStyleBackColor = true;
             this.btnResetMAC.Click += new System.EventHandler(this.btnResetMAC_Click);
+            //
+            //ruleTableGrid
+            //
+            this.ruleTableGrid.AllowUserToAddRows = false;
+            this.ruleTableGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            this.ruleTableGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.ruleTableGrid.Location = new System.Drawing.Point(420, 380);
+            this.ruleTableGrid.Size = new System.Drawing.Size(450, 200);
+            this.ruleTableGrid.RowHeadersVisible = false;
+
+            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
+            {
+                HeaderText = "Action",
+                Name = "ActionColumn",
+                Items = { "Allow", "Deny" },
+                FlatStyle = FlatStyle.Flat
+            });
+
+            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Interface",
+                Name = "InterfaceColumn"
+            });
+
+            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Address (MAC/IP)",
+                Name = "AddressColumn"
+            });
+
+            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
+            {
+                HeaderText = "Protocol",
+                Name = "ProtocolColumn",
+                Items = { "Any", "ARP", "IP", "ICMP", "TCP", "UDP", "HTTP",  "HTTPS"},
+                FlatStyle = FlatStyle.Flat
+            });
+            // 
+            // btnAddRule
+            // 
+            this.btnAddRule.Location = new System.Drawing.Point(420, 590);
+            this.btnAddRule.Size = new System.Drawing.Size(100, 23);
+            this.btnAddRule.Text = "Add Rule";
+            this.btnAddRule.UseVisualStyleBackColor = true;
+            this.btnAddRule.Click += new System.EventHandler(this.btnAddRule_Click);
+
+            // 
+            // btnRemoveRule
+            // 
+            this.btnRemoveRule.Location = new System.Drawing.Point(540, 590);
+            this.btnRemoveRule.Size = new System.Drawing.Size(100, 23);
+            this.btnRemoveRule.Text = "Remove Rule";
+            this.btnRemoveRule.UseVisualStyleBackColor = true;
+            this.btnRemoveRule.Click += new System.EventHandler(this.btnRemoveRule_Click);
             // 
             // Form1
             // 
@@ -292,7 +355,9 @@ namespace Projekt
             this.Controls.Add(this.agingTimerDuration);
             this.Controls.Add(this.lblAgingTimerDuration);
             this.Controls.Add(this.btnResetMAC);
-
+            this.Controls.Add(this.ruleTableGrid);
+            this.Controls.Add(this.btnAddRule);
+            this.Controls.Add(this.btnRemoveRule);
             this.Name = "Form1";
             this.Text = "Ethernet Hub";
             this.ResumeLayout(false);

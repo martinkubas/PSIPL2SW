@@ -23,6 +23,8 @@ public class PacketForwarder
     private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
     private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
 
+    private ConcurrentDictionary<int, ACL> ACLs = new ConcurrentDictionary<int, ACL>();
+
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
         this.interfaces = interfaces;

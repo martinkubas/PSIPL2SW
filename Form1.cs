@@ -194,6 +194,18 @@ namespace Projekt
                 label.Text = text;
             }
         }
+        private void btnAddRule_Click(object sender, EventArgs e)
+        {
+            this.ruleTableGrid.Rows.Add("Allow", "Interface 1", "", "Any");
+        }
+
+        private void btnRemoveRule_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in this.ruleTableGrid.SelectedRows)
+            {
+                this.ruleTableGrid.Rows.Remove(row);
+            }
+        }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {

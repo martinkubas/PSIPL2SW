@@ -79,7 +79,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FixedSizeConcurentQueue.cs" />
+    <Compile Include="ACE.cs" />
+    <Compile Include="ACL.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,7 +90,6 @@
     <Compile Include="MACTable.cs" />
     <Compile Include="PacketForwarder.cs" />
     <Compile Include="InterfaceStatistics.cs" />
-    <Compile Include="PhysicalAddressExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
