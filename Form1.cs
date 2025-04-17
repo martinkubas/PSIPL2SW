@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using SharpPcap;
 using SharpPcap.LibPcap;
@@ -135,6 +136,9 @@ namespace Projekt
 
                 }
                 UpdateMacAddressTableUI();
+
+                Console.WriteLine("ACL int 1: " + packetForwarder.getACLforInt(0));
+                Console.WriteLine("ACL int 2: " + packetForwarder.getACLforInt(1));
             }
         }
         private void UpdateInterfaceStatsUI(TableLayoutPanel table, InterfaceStatistics stats)
@@ -196,7 +200,7 @@ namespace Projekt
         }
         private void btnAddRule_Click(object sender, EventArgs e)
         {
-            this.ruleTableGrid.Rows.Add("Allow", "Interface 1", "", "Any");
+            this.ruleTableGrid.Rows.Add("Allow", "1","In", "Any", "Any","Any","Any", "Any");
         }
 
         private void btnRemoveRule_Click(object sender, EventArgs e)
@@ -205,6 +209,70 @@ namespace Projekt
             {
                 this.ruleTableGrid.Rows.Remove(row);
             }
+        }
+        private void btnSaveRules_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder == null)
+            {
+                MessageBox.Show("Please start the packet forwarder first");
+                return;
+            }
+
+            try
+            {
+                // Clear all existing ACL rules
+                packetForwarder.ClearAllACLs();
+
+                // Add all rules from the DataGridView
+                foreach (DataGridViewRow row in ruleTableGrid.Rows)
+                {
+                    if (row.IsNewRow) continue;
+
+                    var ace = new ACE
+                    {
+                        RuleAction = row.Cells["ActionColumn"].Value?.ToString() == "Allow" ?
+                            ACE.Action.Allow : ACE.Action.Deny,
+                        RuleDirection = row.Cells["DirectionColumn"].Value?.ToString() == "In" ?
+                            ACE.Direction.In : ACE.Direction.Out,
+                        // Parse other fields as needed
+                        SourceMAC = ParseMAC(row.Cells["SrcAddressColumnMAC"].Value?.ToString()),
+                        DestinationMAC = ParseMAC(row.Cells["DstAddressColumnMAC"].Value?.ToString()),
+                        SourceIP = ParseIP(row.Cells["SrcAddressColumnIP"].Value?.ToString()),
+                        DestinationIP = ParseIP(row.Cells["DstAddressColumnIP"].Value?.ToString()),
+                        RuleProtocol = ParseProtocol(row.Cells["ProtocolColumn"].Value?.ToString())
+                    };
+                    int interfaceIndex = int.Parse(row.Cells["InterfaceColumn"].Value?.ToString() ?? "1") - 1;
+
+
+                    packetForwarder.AddACE(interfaceIndex, ace);
+                }
+
+                MessageBox.Show("Rules saved successfully!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving rules: {ex.Message}");
+            }
+        }
+        private PhysicalAddress ParseMAC(string mac)
+        {
+            if (string.IsNullOrEmpty(mac)) return null;
+            try { return PhysicalAddress.Parse(mac); }
+            catch { return null; }
+        }
+
+        private System.Net.IPAddress ParseIP(string ip)
+        {
+            if (string.IsNullOrEmpty(ip)) return null;
+            try { return System.Net.IPAddress.Parse(ip); }
+            catch { return null; }
+        }
+
+        private ACE.Protocol ParseProtocol(string protocol)
+        {
+            if (string.IsNullOrEmpty(protocol)) return ACE.Protocol.Any;
+            try { return (ACE.Protocol)Enum.Parse(typeof(ACE.Protocol), protocol); }
+            catch { return ACE.Protocol.Any; }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

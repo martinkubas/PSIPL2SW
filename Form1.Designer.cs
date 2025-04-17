@@ -33,6 +33,8 @@ namespace Projekt
         private System.Windows.Forms.DataGridView ruleTableGrid;
         private System.Windows.Forms.Button btnAddRule;
         private System.Windows.Forms.Button btnRemoveRule;
+        private System.Windows.Forms.Button btnSaveRule;
+
 
         protected override void Dispose(bool disposing)
         {
@@ -72,6 +74,7 @@ namespace Projekt
             this.ruleTableGrid = new System.Windows.Forms.DataGridView();
             this.btnAddRule = new System.Windows.Forms.Button();
             this.btnRemoveRule = new System.Windows.Forms.Button();
+            this.btnSaveRule = new System.Windows.Forms.Button();
 
             this.SuspendLayout();
             // 
@@ -223,9 +226,9 @@ namespace Projekt
             this.macAddressTableGrid.AllowUserToAddRows = false;
             this.macAddressTableGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.macAddressTableGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.macAddressTableGrid.Columns.Add("MACAddress", "MAC Address"); // Column 1: MAC Address
-            this.macAddressTableGrid.Columns.Add("Interface", "Interface");   // Column 2: Interface
-            this.macAddressTableGrid.Columns.Add("LastSeen", "Last Seen");    // Column 3: Last Seen
+            this.macAddressTableGrid.Columns.Add("MACAddress", "MAC Address"); 
+            this.macAddressTableGrid.Columns.Add("Interface", "Interface");  
+            this.macAddressTableGrid.Columns.Add("LastSeen", "Last Seen");    
             this.macAddressTableGrid.Location = new System.Drawing.Point(420, 120);
             this.macAddressTableGrid.Name = "macAddressTableGrid";
             this.macAddressTableGrid.ReadOnly = true;
@@ -283,8 +286,8 @@ namespace Projekt
             this.ruleTableGrid.AllowUserToAddRows = false;
             this.ruleTableGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             this.ruleTableGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.ruleTableGrid.Location = new System.Drawing.Point(420, 380);
-            this.ruleTableGrid.Size = new System.Drawing.Size(450, 200);
+            this.ruleTableGrid.Location = new System.Drawing.Point(320, 380);
+            this.ruleTableGrid.Size = new System.Drawing.Size(650, 200);
             this.ruleTableGrid.RowHeadersVisible = false;
 
             this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
@@ -300,13 +303,33 @@ namespace Projekt
                 HeaderText = "Interface",
                 Name = "InterfaceColumn"
             });
-
+            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
+            {
+                HeaderText = "Direction",
+                Name = "DirectionColumn",
+                Items = { "In", "Out" },
+                FlatStyle = FlatStyle.Flat
+            });
             this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Address (MAC/IP)",
-                Name = "AddressColumn"
+                HeaderText = "Source Address (MAC)",
+                Name = "SrcAddressColumnMAC"
             });
-
+            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Destination Address (MAC)",
+                Name = "DstAddressColumnMAC"
+            });
+            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Source Address (IP)",
+                Name = "SrcAddressColumnIP"
+            });
+            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Destination Address (IP)",
+                Name = "DstAddressColumnIP"
+            });
             this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
             {
                 HeaderText = "Protocol",
@@ -317,20 +340,27 @@ namespace Projekt
             // 
             // btnAddRule
             // 
-            this.btnAddRule.Location = new System.Drawing.Point(420, 590);
+            this.btnAddRule.Location = new System.Drawing.Point(750, 590);
             this.btnAddRule.Size = new System.Drawing.Size(100, 23);
             this.btnAddRule.Text = "Add Rule";
             this.btnAddRule.UseVisualStyleBackColor = true;
             this.btnAddRule.Click += new System.EventHandler(this.btnAddRule_Click);
-
             // 
             // btnRemoveRule
             // 
-            this.btnRemoveRule.Location = new System.Drawing.Point(540, 590);
+            this.btnRemoveRule.Location = new System.Drawing.Point(870, 590);
             this.btnRemoveRule.Size = new System.Drawing.Size(100, 23);
             this.btnRemoveRule.Text = "Remove Rule";
             this.btnRemoveRule.UseVisualStyleBackColor = true;
             this.btnRemoveRule.Click += new System.EventHandler(this.btnRemoveRule_Click);
+            // 
+            // btnSaveRule
+            // 
+            this.btnSaveRule.Location = new System.Drawing.Point(320, 590);
+            this.btnSaveRule.Size = new System.Drawing.Size(100, 23);
+            this.btnSaveRule.Text = "Save Rules";
+            this.btnSaveRule.UseVisualStyleBackColor = true;
+            this.btnSaveRule.Click += new System.EventHandler(this.btnSaveRules_Click);
             // 
             // Form1
             // 
@@ -358,6 +388,7 @@ namespace Projekt
             this.Controls.Add(this.ruleTableGrid);
             this.Controls.Add(this.btnAddRule);
             this.Controls.Add(this.btnRemoveRule);
+            this.Controls.Add(this.btnSaveRule);
             this.Name = "Form1";
             this.Text = "Ethernet Hub";
             this.ResumeLayout(false);

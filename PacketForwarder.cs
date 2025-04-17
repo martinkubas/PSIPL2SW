@@ -23,7 +23,7 @@ public class PacketForwarder
     private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
     private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
 
-    private ConcurrentDictionary<int, ACL> ACLs = new ConcurrentDictionary<int, ACL>();
+    private List<ACL> interfaceACLs = new List<ACL>();
 
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
@@ -34,6 +34,8 @@ public class PacketForwarder
         foreach (var _ in interfaces)
         {
             interfaceStats.Add(new InterfaceStatistics());
+            interfaceACLs.Add(new ACL());
+
         }
     }
     public void Start()
@@ -193,9 +195,27 @@ public class PacketForwarder
         }
         throw new ArgumentOutOfRangeException(nameof(index), "Invalid interface index.");
     }
+
+    public void AddACE(int interfaceIndex, ACE ace)
+    {
+        interfaceACLs[interfaceIndex].addACE(ace);
+    }
+    public void ClearAllACLs()
+    {
+        foreach (var acl in interfaceACLs)
+        {
+            acl.acl.Clear();
+        }
+    }
+    public ACL getACLforInt(int index)
+    {
+        return interfaceACLs[index];
+    }
+
     public MACTable GetMacAddressTable()
     {
         return this.macAddressTable;
     }
+    
 
 }
