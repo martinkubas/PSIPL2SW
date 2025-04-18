@@ -23,7 +23,7 @@ public class PacketForwarder
     private ConcurrentQueue<string> receivedPackets = new ConcurrentQueue<string>();
     private ConcurrentDictionary<string, byte> receivedPacketsHashSet = new ConcurrentDictionary<string, byte>();
 
-    private List<ACL> interfaceACLs = new List<ACL>();
+    private List<List<ACL>> interfaceACLs = new List<List<ACL>>();
 
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
@@ -34,8 +34,8 @@ public class PacketForwarder
         foreach (var _ in interfaces)
         {
             interfaceStats.Add(new InterfaceStatistics());
-            interfaceACLs.Add(new ACL());
 
+            interfaceACLs.Add(new List<ACL> { new ACL(), new ACL() }); //in out
         }
     }
     public void Start()
@@ -77,16 +77,16 @@ public class PacketForwarder
         var packet = Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
         string packetHash = ComputePacketHash(rawPacket.Data);
 
-        if (checkIfWasReceivedBefore(packetHash))
-        {
-            return;
-        }
+        if (checkIfWasReceivedBefore(packetHash)) return;
 
         queueControl(packetHash);
 
         int incomingInterfaceIndex = interfaces.IndexOf(device);
+        if (!interfaceACLs[incomingInterfaceIndex][0].allowPacket(packet)) return;
+        
 
-        var ethernetPacket = packet.Extract<EthernetPacket>();
+
+            var ethernetPacket = packet.Extract<EthernetPacket>();
         if (ethernetPacket != null)
         {
             var sourceMac = ethernetPacket.SourceHardwareAddress;
@@ -133,6 +133,7 @@ public class PacketForwarder
         for (int i = 0; i < interfaces.Count; i++)
         {
             if (i == incomingInterfaceIndex) continue;
+            if (!interfaceACLs[i][1].allowPacket(packet)) continue;
 
             sendPacket(interfaces[i], packet, interfaceStats[i]);
             interfaceStats[i].AnalyzePacket(packet, false);
@@ -142,9 +143,11 @@ public class PacketForwarder
 
     private void sendUnicast(Packet packet, int destinationInterfaceIndex)
     {
+        if (!interfaceACLs[destinationInterfaceIndex][1].allowPacket(packet)) return;
+        
+        sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
         interfaceStats[destinationInterfaceIndex].AnalyzePacket(packet, false);
         interfaceStats[destinationInterfaceIndex].IncrementTotalOut();
-        sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
     }
 
     private void sendPacket(LibPcapLiveDevice outgoingInterface, Packet packet, InterfaceStatistics outStats)
@@ -196,20 +199,23 @@ public class PacketForwarder
         throw new ArgumentOutOfRangeException(nameof(index), "Invalid interface index.");
     }
 
-    public void AddACE(int interfaceIndex, ACE ace)
+    public void AddACE(int interfaceIndex, ACE ace, bool incoming)
     {
-        interfaceACLs[interfaceIndex].addACE(ace);
-    }
-    public void ClearAllACLs()
-    {
-        foreach (var acl in interfaceACLs)
+        if (incoming)
         {
-            acl.acl.Clear();
+            interfaceACLs[interfaceIndex][0].addACE(ace);
+            return;
         }
+        
+        interfaceACLs[interfaceIndex][1].addACE(ace);
     }
-    public ACL getACLforInt(int index)
+    public ACL getACLforInt(int index, bool incoming)
     {
-        return interfaceACLs[index];
+        if (incoming)
+        {
+            return interfaceACLs[index][0];
+        }
+        return interfaceACLs[index][1];
     }
 
     public MACTable GetMacAddressTable()

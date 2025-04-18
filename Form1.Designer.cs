@@ -29,11 +29,10 @@ namespace Projekt
         private System.Windows.Forms.Label lblAgingTimerDuration;
         private System.Windows.Forms.Timer agingTimer;
 
-
-        private System.Windows.Forms.DataGridView ruleTableGrid;
+        private System.Windows.Forms.ListView rulesListView;
         private System.Windows.Forms.Button btnAddRule;
         private System.Windows.Forms.Button btnRemoveRule;
-        private System.Windows.Forms.Button btnSaveRule;
+        private System.Windows.Forms.Button btnCheckRuleForInt;
 
 
         protected override void Dispose(bool disposing)
@@ -71,10 +70,11 @@ namespace Projekt
             this.btnResetMAC = new System.Windows.Forms.Button();
             this.agingTimer = new System.Windows.Forms.Timer(this.components);
 
-            this.ruleTableGrid = new System.Windows.Forms.DataGridView();
+            this.rulesListView = new System.Windows.Forms.ListView();
             this.btnAddRule = new System.Windows.Forms.Button();
             this.btnRemoveRule = new System.Windows.Forms.Button();
-            this.btnSaveRule = new System.Windows.Forms.Button();
+            this.btnCheckRuleForInt = new System.Windows.Forms.Button();
+
 
             this.SuspendLayout();
             // 
@@ -280,87 +280,43 @@ namespace Projekt
             this.btnResetMAC.Text = "Reset";
             this.btnResetMAC.UseVisualStyleBackColor = true;
             this.btnResetMAC.Click += new System.EventHandler(this.btnResetMAC_Click);
-            //
-            //ruleTableGrid
-            //
-            this.ruleTableGrid.AllowUserToAddRows = false;
-            this.ruleTableGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            this.ruleTableGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.ruleTableGrid.Location = new System.Drawing.Point(320, 380);
-            this.ruleTableGrid.Size = new System.Drawing.Size(650, 200);
-            this.ruleTableGrid.RowHeadersVisible = false;
-
-            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
-            {
-                HeaderText = "Action",
-                Name = "ActionColumn",
-                Items = { "Allow", "Deny" },
-                FlatStyle = FlatStyle.Flat
-            });
-
-            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Interface",
-                Name = "InterfaceColumn"
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
-            {
-                HeaderText = "Direction",
-                Name = "DirectionColumn",
-                Items = { "In", "Out" },
-                FlatStyle = FlatStyle.Flat
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Source Address (MAC)",
-                Name = "SrcAddressColumnMAC"
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Destination Address (MAC)",
-                Name = "DstAddressColumnMAC"
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Source Address (IP)",
-                Name = "SrcAddressColumnIP"
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Destination Address (IP)",
-                Name = "DstAddressColumnIP"
-            });
-            this.ruleTableGrid.Columns.Add(new DataGridViewComboBoxColumn
-            {
-                HeaderText = "Protocol",
-                Name = "ProtocolColumn",
-                Items = { "Any", "ARP", "IP", "ICMP", "TCP", "UDP", "HTTP",  "HTTPS"},
-                FlatStyle = FlatStyle.Flat
-            });
+            // 
+            // rulesListView
+            // 
+            this.rulesListView.Location = new System.Drawing.Point(50, 400);
+            this.rulesListView.Size = new System.Drawing.Size(700, 150);
+            this.rulesListView.View = System.Windows.Forms.View.Details;
+            this.rulesListView.FullRowSelect = true;
+            this.rulesListView.GridLines = true;
+            this.rulesListView.Columns.Add("Interface", 100);
+            this.rulesListView.Columns.Add("Action", 100);
+            this.rulesListView.Columns.Add("Direction", 100);
+            this.rulesListView.Columns.Add("Value", 400);
             // 
             // btnAddRule
             // 
-            this.btnAddRule.Location = new System.Drawing.Point(750, 590);
-            this.btnAddRule.Size = new System.Drawing.Size(100, 23);
+            this.btnAddRule.Location = new System.Drawing.Point(50, 560);
+            this.btnAddRule.Size = new System.Drawing.Size(100, 30);
             this.btnAddRule.Text = "Add Rule";
             this.btnAddRule.UseVisualStyleBackColor = true;
             this.btnAddRule.Click += new System.EventHandler(this.btnAddRule_Click);
+
             // 
             // btnRemoveRule
             // 
-            this.btnRemoveRule.Location = new System.Drawing.Point(870, 590);
-            this.btnRemoveRule.Size = new System.Drawing.Size(100, 23);
+            this.btnRemoveRule.Location = new System.Drawing.Point(650, 560);
+            this.btnRemoveRule.Size = new System.Drawing.Size(100, 30);
             this.btnRemoveRule.Text = "Remove Rule";
             this.btnRemoveRule.UseVisualStyleBackColor = true;
             this.btnRemoveRule.Click += new System.EventHandler(this.btnRemoveRule_Click);
-            // 
-            // btnSaveRule
-            // 
-            this.btnSaveRule.Location = new System.Drawing.Point(320, 590);
-            this.btnSaveRule.Size = new System.Drawing.Size(100, 23);
-            this.btnSaveRule.Text = "Save Rules";
-            this.btnSaveRule.UseVisualStyleBackColor = true;
-            this.btnSaveRule.Click += new System.EventHandler(this.btnSaveRules_Click);
+            //
+            // btnCheckRuleForInt
+            //
+            this.btnCheckRuleForInt.Location = new System.Drawing.Point(250, 560);
+            this.btnCheckRuleForInt.Size = new System.Drawing.Size(200, 30);
+            this.btnCheckRuleForInt.Text = "Check rules for whole Interface";
+            this.btnCheckRuleForInt.UseVisualStyleBackColor = true;
+            this.btnCheckRuleForInt.Click += new System.EventHandler(this.btnCheckRuleForInt_Click);
             // 
             // Form1
             // 
@@ -385,10 +341,12 @@ namespace Projekt
             this.Controls.Add(this.agingTimerDuration);
             this.Controls.Add(this.lblAgingTimerDuration);
             this.Controls.Add(this.btnResetMAC);
-            this.Controls.Add(this.ruleTableGrid);
+
+            this.Controls.Add(this.rulesListView);
             this.Controls.Add(this.btnAddRule);
             this.Controls.Add(this.btnRemoveRule);
-            this.Controls.Add(this.btnSaveRule);
+            this.Controls.Add(this.btnCheckRuleForInt);
+
             this.Name = "Form1";
             this.Text = "Ethernet Hub";
             this.ResumeLayout(false);

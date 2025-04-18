@@ -59,6 +59,7 @@ namespace Projekt
             if(comboBoxInterface1.SelectedValue == comboBoxInterface2.SelectedValue)
             {
                 MessageBox.Show("The devices cannot be the same");
+                return;
             }
             activeInterfaces.Add(comboBoxInterface1.SelectedValue as LibPcapLiveDevice);
             activeInterfaces.Add(comboBoxInterface2.SelectedValue as LibPcapLiveDevice);
@@ -98,6 +99,7 @@ namespace Projekt
                 btnStop.Enabled = false;
 
                 timerStatistics.Stop();
+                packetForwarder = null;
             }
             catch (Exception ex)
             {
@@ -137,9 +139,8 @@ namespace Projekt
                 }
                 UpdateMacAddressTableUI();
 
-                Console.WriteLine("ACL int 1: " + packetForwarder.getACLforInt(0));
-                Console.WriteLine("ACL int 2: " + packetForwarder.getACLforInt(1));
             }
+            Console.WriteLine("Int1 in: " +  packetForwarder.getACLforInt(0, true) + "Int1 out: " + packetForwarder.getACLforInt(0, false));
         }
         private void UpdateInterfaceStatsUI(TableLayoutPanel table, InterfaceStatistics stats)
         {
@@ -200,79 +201,65 @@ namespace Projekt
         }
         private void btnAddRule_Click(object sender, EventArgs e)
         {
-            this.ruleTableGrid.Rows.Add("Allow", "1","In", "Any", "Any","Any","Any", "Any");
+            if (packetForwarder == null) return;
+            var form = new RuleEditorForm(activeInterfaces);
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                ACE newRule = form.NewRule;
+                int interfaceIndex = form.comboInterface.SelectedIndex;
+                string direction = form.comboDirection.SelectedItem.ToString();
+
+                packetForwarder.AddACE(interfaceIndex, newRule, direction == "In");
+                rulesListView.Items.Insert(0, new ListViewItem(new[] { (interfaceIndex + 1).ToString(), newRule.RuleAction.ToString(), direction, newRule.ToString() }));
+            }
         }
 
         private void btnRemoveRule_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow row in this.ruleTableGrid.SelectedRows)
-            {
-                this.ruleTableGrid.Rows.Remove(row);
-            }
-        }
-        private void btnSaveRules_Click(object sender, EventArgs e)
-        {
-            if (packetForwarder == null)
-            {
-                MessageBox.Show("Please start the packet forwarder first");
+            if (packetForwarder == null || rulesListView.SelectedItems.Count == 0)
                 return;
-            }
 
-            try
+            ListViewItem selectedItem = rulesListView.SelectedItems[0];
+
+            int interfaceIndex = int.Parse(selectedItem.SubItems[0].Text) - 1;
+            string direction = selectedItem.SubItems[2].Text;
+
+            ACL acl = packetForwarder.getACLforInt(interfaceIndex, direction == "In");
+
+            string ruleText = selectedItem.SubItems[3].Text;
+            ACE aceToRemove = acl.acl.FirstOrDefault(ace => ace.ToString() == ruleText);
+
+            if (aceToRemove != null)
             {
-                // Clear all existing ACL rules
-                packetForwarder.ClearAllACLs();
+                acl.removeACE(acl.acl.IndexOf(aceToRemove));
 
-                // Add all rules from the DataGridView
-                foreach (DataGridViewRow row in ruleTableGrid.Rows)
-                {
-                    if (row.IsNewRow) continue;
+                rulesListView.Items.Remove(selectedItem);
 
-                    var ace = new ACE
-                    {
-                        RuleAction = row.Cells["ActionColumn"].Value?.ToString() == "Allow" ?
-                            ACE.Action.Allow : ACE.Action.Deny,
-                        RuleDirection = row.Cells["DirectionColumn"].Value?.ToString() == "In" ?
-                            ACE.Direction.In : ACE.Direction.Out,
-                        // Parse other fields as needed
-                        SourceMAC = ParseMAC(row.Cells["SrcAddressColumnMAC"].Value?.ToString()),
-                        DestinationMAC = ParseMAC(row.Cells["DstAddressColumnMAC"].Value?.ToString()),
-                        SourceIP = ParseIP(row.Cells["SrcAddressColumnIP"].Value?.ToString()),
-                        DestinationIP = ParseIP(row.Cells["DstAddressColumnIP"].Value?.ToString()),
-                        RuleProtocol = ParseProtocol(row.Cells["ProtocolColumn"].Value?.ToString())
-                    };
-                    int interfaceIndex = int.Parse(row.Cells["InterfaceColumn"].Value?.ToString() ?? "1") - 1;
-
-
-                    packetForwarder.AddACE(interfaceIndex, ace);
-                }
-
-                MessageBox.Show("Rules saved successfully!");
+                Console.WriteLine($"Removed rule from Interface {interfaceIndex + 1} ({direction})");
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show($"Error saving rules: {ex.Message}");
+                MessageBox.Show("Could not find matching rule in ACL", "Error",
+                               MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-        private PhysicalAddress ParseMAC(string mac)
+        private void btnCheckRuleForInt_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(mac)) return null;
-            try { return PhysicalAddress.Parse(mac); }
-            catch { return null; }
-        }
+            if (packetForwarder == null || rulesListView.SelectedItems.Count == 0)
+                return;
 
-        private System.Net.IPAddress ParseIP(string ip)
-        {
-            if (string.IsNullOrEmpty(ip)) return null;
-            try { return System.Net.IPAddress.Parse(ip); }
-            catch { return null; }
-        }
+            ListViewItem selectedItem = rulesListView.SelectedItems[0];
 
-        private ACE.Protocol ParseProtocol(string protocol)
-        {
-            if (string.IsNullOrEmpty(protocol)) return ACE.Protocol.Any;
-            try { return (ACE.Protocol)Enum.Parse(typeof(ACE.Protocol), protocol); }
-            catch { return ACE.Protocol.Any; }
+            int interfaceIndex = int.Parse(selectedItem.SubItems[0].Text) - 1;
+            string displayText = $"=== Interface {interfaceIndex + 1} ACL Rules ===" + Environment.NewLine + Environment.NewLine +
+                       "=== INCOMING RULES ===" + Environment.NewLine +
+                       packetForwarder.getACLforInt(interfaceIndex, true).ToString() + Environment.NewLine + Environment.NewLine +
+                       "=== OUTGOING RULES ===" + Environment.NewLine +
+                       packetForwarder.getACLforInt(interfaceIndex, false).ToString();
+
+            var viewer = new ACLViewerForm();
+            viewer.SetRulesText(displayText);
+            viewer.ShowDialog();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

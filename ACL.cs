@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PacketDotNet;
+
 
 namespace Projekt
 {
@@ -12,7 +14,7 @@ namespace Projekt
 
         public void addACE(ACE ace)
         {
-            acl.Insert(0, ace);
+            acl.Add(ace);
         }
         public void removeACE(int index)
         {
@@ -21,7 +23,12 @@ namespace Projekt
                 acl.RemoveAt(index);
             }
         }
-        public bool allowPacket()
+        public void clearAllACEs()
+        {
+            acl.Clear(); 
+
+        }
+        public bool allowPacket(Packet packet)
         {
             foreach (ACE ace in acl)
             {
@@ -36,13 +43,13 @@ namespace Projekt
                 return "No rules in ACL";
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"ACL contains {acl.Count} rules:");
-            foreach (var rule in acl)
+            for (int i = 0; i < acl.Count; i++)
             {
-                sb.AppendLine(rule.ToString());  
+                sb.AppendLine($"[{i + 1}] {acl[i].ToString()}");
             }
             return sb.ToString();
         }
+
 
 
     }
