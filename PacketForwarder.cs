@@ -82,7 +82,7 @@ public class PacketForwarder
         queueControl(packetHash);
 
         int incomingInterfaceIndex = interfaces.IndexOf(device);
-        if (!interfaceACLs[incomingInterfaceIndex][0].allowPacket(packet)) return;
+        if (!interfaceACLs[incomingInterfaceIndex][0].AllowPacket(packet)) return;
         
 
 
@@ -133,7 +133,7 @@ public class PacketForwarder
         for (int i = 0; i < interfaces.Count; i++)
         {
             if (i == incomingInterfaceIndex) continue;
-            if (!interfaceACLs[i][1].allowPacket(packet)) continue;
+            if (!interfaceACLs[i][1].AllowPacket(packet)) continue;
 
             sendPacket(interfaces[i], packet, interfaceStats[i]);
             interfaceStats[i].AnalyzePacket(packet, false);
@@ -143,7 +143,7 @@ public class PacketForwarder
 
     private void sendUnicast(Packet packet, int destinationInterfaceIndex)
     {
-        if (!interfaceACLs[destinationInterfaceIndex][1].allowPacket(packet)) return;
+        if (!interfaceACLs[destinationInterfaceIndex][1].AllowPacket(packet)) return;
         
         sendPacket(interfaces[destinationInterfaceIndex], packet, interfaceStats[destinationInterfaceIndex]);
         interfaceStats[destinationInterfaceIndex].AnalyzePacket(packet, false);
@@ -203,11 +203,11 @@ public class PacketForwarder
     {
         if (incoming)
         {
-            interfaceACLs[interfaceIndex][0].addACE(ace);
+            interfaceACLs[interfaceIndex][0].AddACE(ace);
             return;
         }
         
-        interfaceACLs[interfaceIndex][1].addACE(ace);
+        interfaceACLs[interfaceIndex][1].AddACE(ace);
     }
     public ACL getACLforInt(int index, bool incoming)
     {

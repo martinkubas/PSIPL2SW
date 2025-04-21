@@ -76,14 +76,14 @@ namespace Projekt
             {
                 comboInterface.Items.Add($"Interface {i + 1} ({interfaces[i].Interface.FriendlyName})");
             }
-            comboInterface.SelectedIndex = 0;
             comboDirection.Items.Add("In"); comboDirection.Items.Add("Out");
-            comboAction.Items.AddRange(Enum.GetValues(typeof(ACE.Action)).Cast<object>().ToArray());
-            comboProtocol.Items.AddRange(Enum.GetValues(typeof(ACE.Protocol)).Cast<object>().ToArray());
+            comboAction.Items.Add("Allow"); comboAction.Items.Add("Deny");
+            comboProtocol.Items.AddRange(new[] { "Any", "Ethernet", "IP", "ARP", "ICMP", "TCP", "UDP" });
 
+            comboProtocol.SelectedIndex = 0;
+            comboInterface.SelectedIndex = 0;
             comboDirection.SelectedIndex = 0;
             comboAction.SelectedIndex = 0;
-            comboProtocol.SelectedIndex = 0;
 
             this.Controls.AddRange(new Control[]
             {
@@ -99,14 +99,14 @@ namespace Projekt
             {
                 NewRule = new ACE
                 {
-                    RuleAction = (ACE.Action)comboAction.SelectedItem,
-                    RuleProtocol = (ACE.Protocol)comboProtocol.SelectedItem,
-                    SourceMAC = string.IsNullOrWhiteSpace(txtSrcMAC.Text) ? null : PhysicalAddress.Parse(txtSrcMAC.Text.Replace(":", "-")),
-                    DestinationMAC = string.IsNullOrWhiteSpace(txtDstMAC.Text) ? null : PhysicalAddress.Parse(txtDstMAC.Text.Replace(":", "-")),
+                    RuleAction = comboAction.SelectedItem?.ToString() ?? "Allow",
+                    RuleProtocol = comboProtocol.SelectedItem?.ToString() ?? "Any",
+                    SourceMAC = string.IsNullOrWhiteSpace(txtSrcMAC.Text) ? null : PhysicalAddress.Parse(txtSrcMAC.Text.Replace(":", "-").ToUpper()),
+                    DestinationMAC = string.IsNullOrWhiteSpace(txtDstMAC.Text) ? null : PhysicalAddress.Parse(txtDstMAC.Text.Replace(":", "-").ToUpper()),
                     SourceIP = string.IsNullOrWhiteSpace(txtSrcIP.Text) ? null : IPAddress.Parse(txtSrcIP.Text),
                     DestinationIP = string.IsNullOrWhiteSpace(txtDstIP.Text) ? null : IPAddress.Parse(txtDstIP.Text),
-                    SourcePort = string.IsNullOrWhiteSpace(txtSrcPort.Text) ? (int?)null : int.Parse(txtSrcPort.Text),
-                    DestinationPort = string.IsNullOrWhiteSpace(txtDstPort.Text) ? (int?)null : int.Parse(txtDstPort.Text)
+                    SourcePort = ushort.TryParse(txtSrcPort.Text, out var srcPort) ? (ushort?)srcPort : null,
+                    DestinationPort = ushort.TryParse(txtDstPort.Text, out var dstPort) ? (ushort?)dstPort : null
 
                 };
 

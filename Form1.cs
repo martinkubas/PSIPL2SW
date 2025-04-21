@@ -231,7 +231,7 @@ namespace Projekt
 
             if (aceToRemove != null)
             {
-                acl.removeACE(acl.acl.IndexOf(aceToRemove));
+                acl.RemoveACE(acl.acl.IndexOf(aceToRemove));
 
                 rulesListView.Items.Remove(selectedItem);
 
