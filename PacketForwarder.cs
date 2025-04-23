@@ -25,11 +25,17 @@ public class PacketForwarder
 
     private List<List<ACL>> interfaceACLs = new List<List<ACL>>();
 
+    private SyslogClient syslogClient;
+
+
     public PacketForwarder(List<LibPcapLiveDevice> interfaces)
     {
         this.interfaces = interfaces;
         this.interfaceStats = new List<InterfaceStatistics>();
         this.macAddressTable = new MACTable();
+        this.macAddressTable.SetPacketForwarder(this); 
+
+        this.syslogClient = new SyslogClient();
 
         foreach (var _ in interfaces)
         {
@@ -52,11 +58,14 @@ public class PacketForwarder
             device.OnPacketArrival += OnPacketArrival;
             device.StartCapture();
         }
+        LogToSyslog("Packet forwarder started", SyslogSeverity.Informational);
 
     }
 
     public void Stop()
     {
+        LogToSyslog("Packet forwarder stopping", SyslogSeverity.Informational);
+
         foreach (var device in interfaces)
         {
             if (device != null && device.Started)
@@ -82,8 +91,11 @@ public class PacketForwarder
         queueControl(packetHash);
 
         int incomingInterfaceIndex = interfaces.IndexOf(device);
-        if (!interfaceACLs[incomingInterfaceIndex][0].AllowPacket(packet)) return;
-        
+        if (!interfaceACLs[incomingInterfaceIndex][0].AllowPacket(packet))
+        {
+            LogToSyslog($"Packet blocked by incoming ACL on interface {incomingInterfaceIndex + 1}", SyslogSeverity.Warning);
+        }
+
 
 
             var ethernetPacket = packet.Extract<EthernetPacket>();
@@ -91,6 +103,7 @@ public class PacketForwarder
         {
             var sourceMac = ethernetPacket.SourceHardwareAddress;
             macAddressTable.AddOrUpdate(sourceMac, incomingInterfaceIndex);
+
         }
 
         checkMacAndSend(packet, incomingInterfaceIndex);
@@ -203,12 +216,44 @@ public class PacketForwarder
     {
         if (incoming)
         {
+            LogToSyslog($"Added {ace.RuleAction} rule to interface {interfaceIndex + 1} incoming ACL", SyslogSeverity.Informational);
+
             interfaceACLs[interfaceIndex][0].AddACE(ace);
             return;
         }
         
         interfaceACLs[interfaceIndex][1].AddACE(ace);
+        LogToSyslog($"Added {ace.RuleAction} rule to interface {interfaceIndex + 1} outgoing ACL", SyslogSeverity.Informational);
+
     }
+    public bool ConfigureSyslog(string sourceIP, string serverIP)
+    {
+        return syslogClient.Configure(sourceIP, serverIP);
+    }
+
+    public void StartSyslog()
+    {
+        syslogClient.Start();
+    }
+
+    public void StopSyslog()
+    {
+        syslogClient.Stop();
+    }
+    public void LogToSyslog(string message, SyslogSeverity severity)
+    {
+        if (syslogClient != null && syslogClient.IsEnabled)
+        {
+            syslogClient.Log(message, severity);
+        }
+    }
+
+    public bool IsSyslogEnabled()
+    {
+        return syslogClient != null && syslogClient.IsEnabled;
+    }
+
+
     public ACL getACLforInt(int index, bool incoming)
     {
         if (incoming)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
+using System.Net.Mail;
 
 namespace Projekt
 {
@@ -12,10 +13,17 @@ namespace Projekt
         private Dictionary<PhysicalAddress, (int InterfaceIndex, DateTime LastSeen)> macTable;
         private object _lock = new object();
         private Dictionary<PhysicalAddress, Queue<int>> history = new Dictionary<PhysicalAddress, Queue<int>>();
+
+        private PacketForwarder packetForwarder;
+
         public MACTable()
         {
             macTable = new Dictionary<PhysicalAddress, (int, DateTime)>();
             history = new Dictionary<PhysicalAddress, Queue<int>>();
+        }
+        public void SetPacketForwarder(PacketForwarder forwarder)
+        {
+            packetForwarder = forwarder;
         }
 
         public void AddOrUpdate(PhysicalAddress macAddress, int interfaceIndex)
@@ -28,6 +36,11 @@ namespace Projekt
                 {
                     packetHistory = new Queue<int>();
                     history[macAddress] = packetHistory;
+
+                    if (packetForwarder != null)
+                    {
+                        packetForwarder.LogToSyslog($"New MAC {macAddress} discovered on interface {interfaceIndex + 1}", SyslogSeverity.Informational);
+                    }
                 }
 
                 packetHistory.Enqueue(interfaceIndex);
@@ -45,6 +58,11 @@ namespace Projekt
 
                     if (newInterface != existingEntry.InterfaceIndex)
                     {
+                        if (packetForwarder != null)
+                        {
+                            packetForwarder.LogToSyslog($"MAC {macAddress} moved from interface {existingEntry.InterfaceIndex + 1} to interface {newInterface + 1}", SyslogSeverity.Notice);
+                        }
+
                         RemoveEntriesForInterface(existingEntry.InterfaceIndex);
                         RemoveEntriesForInterface(newInterface);
                     }
@@ -108,7 +126,15 @@ namespace Projekt
 
                 foreach (var macAddress in oldEntries)
                 {
-                    Remove(macAddress);
+                    if (macTable.TryGetValue(macAddress, out var entry))
+                    {
+                        if(packetForwarder != null)
+                        {
+                            packetForwarder.LogToSyslog($"MAC {macAddress} aged out from interface {entry.InterfaceIndex + 1}", SyslogSeverity.Notice);
+                        }
+                       
+                        macTable.Remove(macAddress);
+                    }
                 }
             }
         }
@@ -123,6 +149,10 @@ namespace Projekt
         {
             lock (_lock)
             {
+                if (packetForwarder != null)
+                {
+                    packetForwarder.LogToSyslog($"MAC address table cleared ({macTable.Count} entries)", SyslogSeverity.Notice);
+                }
                 macTable.Clear();
                 history.Clear();
             }

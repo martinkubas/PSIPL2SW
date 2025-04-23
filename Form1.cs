@@ -73,6 +73,10 @@ namespace Projekt
                 btnStart.Enabled = false;
                 btnStop.Enabled = true;
 
+                btnConfigureSyslog.Enabled = true;
+                btnStartSyslog.Enabled = false;  
+                btnStopSyslog.Enabled = false;
+
                 timerStatistics.Start();
                 agingTimer.Start();
 
@@ -98,6 +102,10 @@ namespace Projekt
                 btnStart.Enabled = true;
                 btnStop.Enabled = false;
 
+                btnConfigureSyslog.Enabled = false;
+                btnStartSyslog.Enabled = false;
+                btnStopSyslog.Enabled = false;
+
                 timerStatistics.Stop();
                 packetForwarder = null;
             }
@@ -114,6 +122,10 @@ namespace Projekt
                 {
                     var stats = packetForwarder.GetStatsForInterface(i);
                     stats.Reset();
+                    if (packetForwarder.IsSyslogEnabled())
+                    {
+                        packetForwarder.LogToSyslog($"Statistics reset for interface {i + 1}", SyslogSeverity.Notice);
+                    }
                 }
             }
         }
@@ -235,7 +247,11 @@ namespace Projekt
 
                 rulesListView.Items.Remove(selectedItem);
 
-                Console.WriteLine($"Removed rule from Interface {interfaceIndex + 1} ({direction})");
+                if (packetForwarder.IsSyslogEnabled())
+                {
+                    packetForwarder.LogToSyslog($"ACL rule removed from interface {interfaceIndex + 1} {direction.ToLower()}bound", SyslogSeverity.Informational);
+                }
+
             }
             else
             {
@@ -260,6 +276,46 @@ namespace Projekt
             var viewer = new ACLViewerForm();
             viewer.SetRulesText(displayText);
             viewer.ShowDialog();
+        }
+        private void btnConfigureSyslog_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder == null)
+            {
+                MessageBox.Show("You must start the switch first before configuring syslog.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            bool success = packetForwarder.ConfigureSyslog(txtSourceIP.Text, txtServerIP.Text);
+            if (success)
+            {
+                MessageBox.Show("Syslog configuration successful.", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                btnStartSyslog.Enabled = true;
+            }
+            else
+            {
+                MessageBox.Show("Failed to configure Syslog. Please check IP addresses.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnStartSyslog_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder == null) return;
+
+            packetForwarder.StartSyslog();
+            btnStartSyslog.Enabled = false;
+            btnStopSyslog.Enabled = true;
+        }
+
+        private void btnStopSyslog_Click(object sender, EventArgs e)
+        {
+            if (packetForwarder == null) return;
+
+            packetForwarder.StopSyslog();
+            btnStartSyslog.Enabled = true;
+            btnStopSyslog.Enabled = false;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

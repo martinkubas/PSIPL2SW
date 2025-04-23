@@ -34,6 +34,15 @@ namespace Projekt
         private System.Windows.Forms.Button btnRemoveRule;
         private System.Windows.Forms.Button btnCheckRuleForInt;
 
+        private System.Windows.Forms.GroupBox grpSyslog;
+        private System.Windows.Forms.Label lblSourceIP;
+        private System.Windows.Forms.TextBox txtSourceIP;
+        private System.Windows.Forms.Label lblServerIP;
+        private System.Windows.Forms.TextBox txtServerIP;
+        private System.Windows.Forms.Button btnConfigureSyslog;
+        private System.Windows.Forms.Button btnStartSyslog;
+        private System.Windows.Forms.Button btnStopSyslog;
+
 
         protected override void Dispose(bool disposing)
         {
@@ -74,6 +83,15 @@ namespace Projekt
             this.btnAddRule = new System.Windows.Forms.Button();
             this.btnRemoveRule = new System.Windows.Forms.Button();
             this.btnCheckRuleForInt = new System.Windows.Forms.Button();
+
+            this.grpSyslog = new System.Windows.Forms.GroupBox();
+            this.lblSourceIP = new System.Windows.Forms.Label();
+            this.txtSourceIP = new System.Windows.Forms.TextBox();
+            this.lblServerIP = new System.Windows.Forms.Label();
+            this.txtServerIP = new System.Windows.Forms.TextBox();
+            this.btnConfigureSyslog = new System.Windows.Forms.Button();
+            this.btnStartSyslog = new System.Windows.Forms.Button();
+            this.btnStopSyslog = new System.Windows.Forms.Button();
 
 
             this.SuspendLayout();
@@ -317,6 +335,71 @@ namespace Projekt
             this.btnCheckRuleForInt.Text = "Check rules for whole Interface";
             this.btnCheckRuleForInt.UseVisualStyleBackColor = true;
             this.btnCheckRuleForInt.Click += new System.EventHandler(this.btnCheckRuleForInt_Click);
+            //
+            // grpSyslog
+            //
+            this.grpSyslog.Location = new System.Drawing.Point(780, 400);
+            this.grpSyslog.Size = new System.Drawing.Size(450, 180);
+            this.grpSyslog.Text = "Syslog Configuration";
+            //
+            // lblSourceIP
+            //
+            this.lblSourceIP = new System.Windows.Forms.Label();
+            this.lblSourceIP.Location = new System.Drawing.Point(20, 30);
+            this.lblSourceIP.Size = new System.Drawing.Size(120, 20);
+            this.lblSourceIP.Text = "Source IP:";
+            this.lblSourceIP.AutoSize = true;
+            //
+            // txtSourceIP
+            //
+            this.txtSourceIP = new System.Windows.Forms.TextBox();
+            this.txtSourceIP.Location = new System.Drawing.Point(150, 30);
+            this.txtSourceIP.Size = new System.Drawing.Size(150, 25);
+            this.txtSourceIP.Text = "192.168.1.1";
+            //
+            // lblServerIP
+            //
+            this.lblServerIP = new System.Windows.Forms.Label();
+            this.lblServerIP.Location = new System.Drawing.Point(20, 70);
+            this.lblServerIP.Size = new System.Drawing.Size(120, 20);
+            this.lblServerIP.Text = "Server IP:";
+            this.lblServerIP.AutoSize = true;
+            //
+            // txtServerIP
+            //
+            this.txtServerIP = new System.Windows.Forms.TextBox();
+            this.txtServerIP.Location = new System.Drawing.Point(150, 70);
+            this.txtServerIP.Size = new System.Drawing.Size(150, 25);
+            this.txtServerIP.Text = "192.168.1.100";
+            //
+            // btnConfigureSyslog
+            //
+            this.btnConfigureSyslog = new System.Windows.Forms.Button();
+            this.btnConfigureSyslog.Location = new System.Drawing.Point(20, 110);
+            this.btnConfigureSyslog.Size = new System.Drawing.Size(100, 30);
+            this.btnConfigureSyslog.Text = "Configure";
+            this.btnConfigureSyslog.UseVisualStyleBackColor = true;
+            this.btnConfigureSyslog.Click += new System.EventHandler(this.btnConfigureSyslog_Click);
+            //
+            // btnStartSyslog
+            //
+            this.btnStartSyslog = new System.Windows.Forms.Button();
+            this.btnStartSyslog.Location = new System.Drawing.Point(130, 110);
+            this.btnStartSyslog.Size = new System.Drawing.Size(100, 30);
+            this.btnStartSyslog.Text = "Start";
+            this.btnStartSyslog.UseVisualStyleBackColor = true;
+            this.btnStartSyslog.Enabled = false;
+            this.btnStartSyslog.Click += new System.EventHandler(this.btnStartSyslog_Click);
+            //
+            // btnStopSyslog
+            //
+            this.btnStopSyslog = new System.Windows.Forms.Button();
+            this.btnStopSyslog.Location = new System.Drawing.Point(240, 110);
+            this.btnStopSyslog.Size = new System.Drawing.Size(100, 30);
+            this.btnStopSyslog.Text = "Stop";
+            this.btnStopSyslog.UseVisualStyleBackColor = true;
+            this.btnStopSyslog.Enabled = false;
+            this.btnStopSyslog.Click += new System.EventHandler(this.btnStopSyslog_Click);
             // 
             // Form1
             // 
@@ -346,6 +429,17 @@ namespace Projekt
             this.Controls.Add(this.btnAddRule);
             this.Controls.Add(this.btnRemoveRule);
             this.Controls.Add(this.btnCheckRuleForInt);
+
+            this.grpSyslog.Controls.Add(this.lblSourceIP);
+            this.grpSyslog.Controls.Add(this.txtSourceIP);
+            this.grpSyslog.Controls.Add(this.lblServerIP);
+            this.grpSyslog.Controls.Add(this.txtServerIP);
+            this.grpSyslog.Controls.Add(this.btnConfigureSyslog);
+            this.grpSyslog.Controls.Add(this.btnStartSyslog);
+            this.grpSyslog.Controls.Add(this.btnStopSyslog);
+
+            this.Controls.Add(this.grpSyslog);
+
 
             this.Name = "Form1";
             this.Text = "Ethernet Hub";
