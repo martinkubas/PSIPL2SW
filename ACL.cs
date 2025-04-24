@@ -18,7 +18,10 @@ namespace Projekt
             if (index >= 0 && index < acl.Count) acl.RemoveAt(index);
         }
 
-        public void ClearAllACEs() => acl.Clear();
+        public void ClearAllACEs()
+        {
+            acl.Clear();
+        }
 
         public bool AllowPacket(Packet packet)
         {

@@ -152,6 +152,10 @@ namespace Projekt
                 UpdateMacAddressTableUI();
 
             }
+            if (packetForwarder.IsSyslogEnabled())
+            {
+                packetForwarder.LogToSyslog($"Test Test", SyslogSeverity.Informational);
+            }
             Console.WriteLine("Int1 in: " +  packetForwarder.getACLforInt(0, true) + "Int1 out: " + packetForwarder.getACLforInt(0, false));
         }
         private void UpdateInterfaceStatsUI(TableLayoutPanel table, InterfaceStatistics stats)
@@ -223,6 +227,10 @@ namespace Projekt
 
                 packetForwarder.AddACE(interfaceIndex, newRule, direction == "In");
                 rulesListView.Items.Insert(0, new ListViewItem(new[] { (interfaceIndex + 1).ToString(), newRule.RuleAction.ToString(), direction, newRule.ToString() }));
+                if (packetForwarder.IsSyslogEnabled())
+                {
+                    packetForwarder.LogToSyslog($"ACL rule added to interface {interfaceIndex + 1} {direction.ToLower()}bound", SyslogSeverity.Informational);
+                }
             }
         }
 

@@ -94,11 +94,12 @@ public class PacketForwarder
         if (!interfaceACLs[incomingInterfaceIndex][0].AllowPacket(packet))
         {
             LogToSyslog($"Packet blocked by incoming ACL on interface {incomingInterfaceIndex + 1}", SyslogSeverity.Warning);
+            return;
         }
 
 
 
-            var ethernetPacket = packet.Extract<EthernetPacket>();
+        var ethernetPacket = packet.Extract<EthernetPacket>();
         if (ethernetPacket != null)
         {
             var sourceMac = ethernetPacket.SourceHardwareAddress;
@@ -228,7 +229,7 @@ public class PacketForwarder
     }
     public bool ConfigureSyslog(string sourceIP, string serverIP)
     {
-        return syslogClient.Configure(sourceIP, serverIP);
+        return syslogClient.Configure(sourceIP, serverIP, interfaces);
     }
 
     public void StartSyslog()
@@ -242,7 +243,7 @@ public class PacketForwarder
     }
     public void LogToSyslog(string message, SyslogSeverity severity)
     {
-        if (syslogClient != null && syslogClient.IsEnabled)
+        if (syslogClient != null && syslogClient.IsEnabled())
         {
             syslogClient.Log(message, severity);
         }
@@ -250,7 +251,7 @@ public class PacketForwarder
 
     public bool IsSyslogEnabled()
     {
-        return syslogClient != null && syslogClient.IsEnabled;
+        return syslogClient != null && syslogClient.IsEnabled();
     }
 
 
